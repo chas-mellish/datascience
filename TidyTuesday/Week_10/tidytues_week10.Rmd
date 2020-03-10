@@ -17,38 +17,51 @@ library(tidyverse)
 library(tidylog)
 theme_set(theme_bw())
 
-measles <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-25/measles.csv')
+game_goals <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-03/game_goals.csv')
+
+top_250 <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-03/top_250.csv')
+
+season_goals <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-03/season_goals.csv')
+
 ```
 
-### TidyTuesday Week 9
-> Hi, this is my second time attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_ZERO_** experience in coding at all. R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism!
+### TidyTuesday Week 10
+Hi, this is my third time attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a little_** experience in coding thanks to Dr. Stephanie Spielman. R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism!
 
 ```{r TT_Week9, fig.height=4, fig.width=6}
 
-new_england <- c("Maine", "Vermont", "Massachusetts", "Connecticut")
-#These are the New England states that presented mmr results in this dataset.
-fav_fill <- c("rosybrown3", "lightgoldenrod3", "honeydew3", "royalblue3")
-#Here is where I assigned the fills I wanted to a variable.
+fav_fills <- c("darkorange2", "grey18")
+#Assigned fills to the figure, lets go FLyers.
+position_labels <- c("Center", "Left-Wing", "Right-Wing")
+#New labels for each of the positions.
 
-measles %>%
-  select(state, mmr) %>%
-  group_by(state) %>%
-  filter(state %in% new_england) %>%
-  summarize(average_vac = mean(mmr)) %>%
-#All of the code above filters out the states of my choosing and then manipulates the data to show only the average vaccination rate per state.
-  ggplot(aes(x = fct_reorder(state, average_vac), y = average_vac)) +
-  geom_col(aes(fill = state)) +
-  scale_fill_manual(values = fav_fill) +
-  labs(x = "State",
-       y = "Average Vaccination Rate",
-       title = "Vaccination Rates in New England States") +
-  theme_minimal() +
-  theme(legend.position = "none") -> vaccine_plot
+season_goals %>%
+  distinct(player, .keep_all = TRUE) %>%
+#Function removes duplicates of the players  
+  select(player, hand, position) %>%
+#Specifies which columns I am concerned with.  
+  drop_na(hand) %>%
+#Removes players who do not have a dominant hand specified in the dataset.  
+  filter(position %in% c("C", "LW", "RW")) %>%
+#This figure pertains only to offensive players, denfensemen are therefore excluded.
+  mutate(position = factor(position, labels = c(position_labels))) %>%
+#Defined position as a factor and assigned new labels to improve the figure.  
+  ggplot(aes(x = hand, fill = hand)) +
+  geom_bar() +
+  scale_fill_manual(values = fav_fills) +
+  facet_grid(~ position) +
+  labs(x = "",
+       y = "No. of Players",
+       fill = "Hand") +
+  theme_grey() -> hockey_plot
 
-ggsave("titdytuesday_week8.png", vaccine_plot, height = 4, width = 6)
-vaccine_plot
+ggsave("titdytuesday_week10.png", hockey_plot, height = 4, width = 6)
+hockey_plot
+
 ```
 
-> I know this isn't much of a figure but I wanted to work more on isolating variables in the data that I want to examine. Here I looked at the states with reported data in the New England region, comparing the average vaccination rate per state. I also tried out something my professor showed us in class; to avoid hard coding fill values for multiple plots you can create a variable with the fills you desire. It worked!
+This week I wanted to try my hand (pun intended) at re-applying all the skills I have learned in my Data Science course. I attempted to use the 'pivot_wider' function to create a numeric value for right / left hands but realized this was not necessary as 'geom_bar' would perform a count for me. I decided to create a figure representing the comparision between right and left handed players by their position, only focusing on offensive positions.
 
+The data set this week is significant to me as my best friend loves hockey and her favorite team is the Philadelphia Flyers. The Flyers have become my favorite team as well; when Samantha's younger brother, another lifelong Flyers fan, was diagnosed with Leukemia for the second time the team reached out to their family and showered them with love, support, and the opportunity to interact with the team that they love. 
 
+If you would like to donate to the Children's Hospital of Pennsylvania, who administer treatment for Sam's little brother and thousands of other children suffering from cancer, [Donate Here](https://give2.chop.edu/give/241805/#!/donation/checkout).
