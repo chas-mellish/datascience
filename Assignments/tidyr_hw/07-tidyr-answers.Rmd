@@ -1,0 +1,376 @@
+---
+title: "ANSWERS: Working with untidy and tidy data"
+subtitle: "Data Science for Biologists, Spring 2020"
+author: "Nicholas Paterna"
+output: 
+  html_document:
+    highlight: tango
+css: static/sjs-style.css
+params:
+  data_path: "data/"
+editor_options: 
+  chunk_output_type: console
+---
+
+<!-- SETUP CODE CHUNK -->
+```{r setup, include=FALSE}
+## Change the default figure width and height to your liking, but within reason.
+knitr::opts_chunk$set(echo = TRUE, fig.width=6, fig.height=3.5, fig.align = 'center')
+library(tidyverse)
+library(kableExtra) # helpful to print fancy tables in RMarkdown
+theme_set(theme_bw())  ### If you want to set a global theme, do so here
+```
+
+
+# <mark>Questions</mark>
+
+#### Preface Question
+
+Look at the YAML front matter: there is something NEW! Read about params [here](https://rmarkdown.rstudio.com/lesson-6.html). In this case we set a global parameter for the RMarkdown file that corresponds to the path where data lives! We can proceed to use this as a variable like so (always `params$`, like a column in a data frame!). Use this variable for your paths, e.g. `read_csv(paste0(params$data_path, <NAMEOFFILE>))`
+```{r}
+params$data_path
+```
+
+#### Question 1
+
+```{r}
+# Code chunk to read in and examine the data with head()
+measles <- read_csv(paste0(params$data_path, "mcv_immunized_percent_of_one_year_olds.csv")) 
+#Reads in the file we want.
+head(measles)
+
+#OR READ IN THE FILE THIS WAY 
+
+file.path(params$data_path, "mcv_immunized_percent_of_one_year_olds.csv") -> name_of_file
+measles <- read_csv(name_of_file)
+head(measles)
+```
+
+
+```{r}
+# Code chunk to convert data to tidy
+measles %>%
+  pivot_longer(`1980`:`2011`, names_to = "year", 
+               values_to = "percent") -> tidy_measles
+#Combines all the years into a single column, much tidier. 
+  head(tidy_measles) 
+```
+
+#### Question 2
+
+```{r}
+# Code chunk to plot the data
+tidy_measles %>%
+  group_by(country) %>%
+  filter(country %in% c("United States", "Poland")) %>%
+#Specifies which countries I want to look at.  
+  ggplot(aes(x = year, y = percent, color = country, group = country)) +
+  geom_point() + geom_line() +
+  scale_x_discrete(breaks = c('1980', '1990', '2000', '2010')) +
+#Changes the years which will appear on the x-axis.  
+  ylim(75, 100) +
+#Adjusts the limits of the y-axis.  
+  labs(x = "Year", y = "Percent Vaccinated", color = "Country") +
+  scale_color_manual(values = c("gold2", "navyblue")) +
+  theme_minimal()
+```
+
+<answer>
+It appears that the United States, while reamining mostly vaccinated, fluctuated most bewteen 1980 and 1995. Poland remained consistent and also gradually approached 100%. Altogether, these vaccination rates remained well above 70% for this age group.
+</answer>
+
+#### Question 3
+
+```{r}
+# Code chunk to read in and examine the data with head()
+DTP <- read_csv(paste0(params$data_path, "dtp3_immunized_percent_of_one_year_olds.csv")) #Reads in the file we want.
+head(DTP)
+```
+
+
+```{r}
+# Code chunk to convert data to tidy and combine with question 1 data
+DTP %>%
+  pivot_longer(`1980`:`2011`, names_to = "year", 
+               values_to = "percent") %>%
+  mutate(vaccine = "DTP") -> tidy_DTP
+#Performing the same tidying that we did with the measles dataset.
+  head(tidy_DTP)
+
+tidy_measles %>%
+  mutate(vaccine = "measles") -> tidy_measles2
+#Creating new column so that the combination will be successful, otherwise these values would not be disguised clearly.
+  
+bind_rows(tidy_measles2, tidy_DTP) %>%
+  mutate(year = as.numeric(year)) -> tidy_vaccines
+#Changes year from a CHARACTER to a NUMERIC.
+head(tidy_vaccines)
+```
+
+```{r}
+# Code chunk to plot the data
+tidy_vaccines %>%
+  filter(country == "Poland") %>%
+  filter(between(year, 2005, 2021)) %>%
+#This determines the country and year that we are including in the figure.  
+  ggplot(aes(x = year, y = percent, color = vaccine)) +
+  geom_point() + geom_line() +
+#I want to connect the points so both geoms are required for this.  
+  scale_color_manual(values = c("olivedrab", "indianred3")) +
+  ylim(96, 100) +
+#Adjusting the limits of the y-axis makes the data easier to visualize.  
+  labs(x = "Year", y = "Percent",
+       color = "Vaccine", title = "Polish Vaccination Rates (2005-2011)") +
+  theme_minimal()
+
+tidy_vaccines %>%
+  filter(country == "France") %>%
+  filter(between(year, 2005, 2021)) %>%
+#This determines the country and year that we are including in the figure.    
+  ggplot(aes(x = year, y = percent, fill = vaccine)) +
+  geom_col(position = "dodge") +
+#Using this argument separates the bars and puts them alongside eachother.  
+  scale_fill_manual(values = c("mediumpurple3", "orange2")) +
+  labs(x = "Year", y = "Percent", 
+       color = "Vaccine", title = "French Vaccination Rates (2005-2011)") +
+  theme_minimal()
+```
+
+<answer>
+I decided to utilized both methods of visualization with two different countries, I found that the line plot is much easier to read! Additionally, during this time period in both western European countries the vaccination rate for measles and DTP was near 100%. Herd immunity is awesome!
+</answer>
+
+#### Question 4
+
+```{r}
+# Code chunk to read in and examine the data with head()
+seals <- read_csv(paste0(params$data_path, "seals.csv")) #Reads in the file we want.
+head(seals)
+```
+
+
+```{r}
+# Code chunk for distributions (violin, sina, etc.)
+# If sina make sure to load `ggforce()` in SETUP CHUNK!
+seals %>%
+  ggplot(aes(x = oxygen_use, fill = feeding)) +
+  geom_density(alpha = 0.5) +
+#It is important to include an alpha so the two peaks can be easily visualized.  
+  scale_fill_manual(values = c("lightcoral", "lightgreen")) +
+  labs(x = "Oxygen Use", y = "Density", fill = "Feeding")
+```
+
+```{r}
+# Code chunk for data un-tidying and scatterplot
+seals %>%
+  pivot_wider(names_from = "feeding",
+              values_from = "oxygen_use") -> untidy_seals
+
+untidy_seals %>%
+  ggplot(aes(x = No, y = Yes)) +
+  geom_point(aes(color = seal)) +
+  scale_color_gradient(low = "#e687d0", high = "#b54c9d") +
+  geom_abline(color = "gray16") +
+  xlim(40,115) +
+  ylim(20,150) +
+#Adjusting the limits of both axes make the data easily visualized.  
+  labs(x = "Not Feeding", y = "Feeding", color = "Seal No.")
+
+```
+
+<answer>
+In the original density plot it is difficult to determine whether there is a positive relationship between feeding and oxygen use from the seals, but using the scatter plot it is clear that this relationship does exist. As the seals feed their oxygen use is increased.
+</answer>
+
+```{r}
+untidy_seals %>%
+  ggplot(aes(x = No, y = Yes)) +
+  geom_point(aes(color = seal)) +
+  scale_color_gradient(low = "#82b7c4", high = "#366773") +
+  geom_abline(color = "gray16") +
+  annotate("text", x = 80, y = 90, 
+           label = "y=x", color = "turquoise4") +
+#Added the text to the trendline on the graph, chose positioning and color.  
+  xlim(40,115) +
+  ylim(20,150) +
+  labs(x = "Not Feeding", y = "Feeding", color = "Seal No.")
+```
+
+
+#### Question 5
+
+```{r}
+# Code chunk to read in and examine the data with head()
+planets <- read_delim(delim = ";",
+#Using read_delim() allows me to describe how the file is delimitted before converting it to a tibble in my RStudio.                      
+                      paste0(params$data_path, "planets.csv"))
+head(planets)
+```
+
+
+```{r}
+# Code chunk for tidying
+
+planets %>%
+  separate_rows(terrain) %>%
+  separate_rows(climate) -> tidy_planets
+head(tidy_planets)
+
+# HINT: it's literally just piping data into separate_rows twice, one for the column given in the question, and for the second you need to figure out the column.
+## DO NOT OVERCOMPLICATE THIS QUESTION. 
+```
+
+
+#### Question 6
+
+```{r}
+# Code chunk for allllll the wrangling and tidying
+# should END UP as a single piped command - but build it up LINE AT A TIME!
+
+tidy_planets %>%
+  separate(edited, c("edited_date", "edited_time"),sep = " ") %>%
+#Splits the edited column into the two specified columns.  
+  mutate(ratio_period_rotation_orbital = (rotation_period / orbital_period)) %>%
+#Creates the new column with the following ratio; rotation_period:orbital_period.  
+  unite("name_pop", c(name, population), sep = "-") %>%
+#Combines the two specified columns into one.  
+  filter(terrain == "mountains") %>%
+#Views only the planets with this type of terrain.  
+  arrange(desc(ratio_period_rotation_orbital)) -> question_6
+#Arranges the filtered data by DESCENDING ratio.  
+question_6
+
+```
+
+
+#### Question 7
+
+```{r}
+## defines each column as an array
+tibble(
+  color        = c("blue", "green", "turquoise"),
+  male         = c(25, 36, 52),
+  female       = c(28, 17, 33),
+  species_abbr = c("sp1", "sp1", "sp1")
+) -> frogs_sp1
+print(frogs_sp1)
+
+## defines tibble in a format like the tibble would end up appearing
+## spacing is helpful!
+tribble(
+  ~color, ~male, ~female, ~species_abbr,
+  "orange", 13,   17,    "sp2",
+  "red",    45,   36,    "sp2",
+  "pink",  31,    25,    "sp2"
+) -> frogs_sp2
+print(frogs_sp2)
+
+## Like strategy one
+tibble(
+  species_name = c("Frogus firstus", "Frogus secondus"),
+  species_abbr = c("sp1", "sp2")
+) -> species_names
+print(species_names)
+
+### ADD CODE HERE TO PRINT OUT THESE THREE DATASETS!!! YOU HAVE TO LOOK AT THEM TO USE THEM!!
+```
+
+```{r}
+# Code chunk to tidy and combine the three datasets
+bind_rows(frogs_sp1, frogs_sp2) %>%
+#Combines the two datasets containing frog observations.  
+  inner_join(species_names) %>%
+#Using common data (species name & abbr.) to bring in these observations.  
+  separate(species_name, c("genus", "species"), sep = " ") %>%
+#Creates two columns from the single species_name col.  
+  pivot_longer(male:female,
+               names_to = "sex",
+               values_to = "number") %>%
+#Combines the two male & female cols. into one sex category.  
+  select(- species_abbr) -> tidy_frogs
+#Removes the unwanted species_abbr col.
+head(tidy_frogs)
+
+```
+
+```{r}
+# Code chunk to for dplyr task 1
+tidy_frogs %>%
+  filter(sex == "female",
+         color %in% c("green", "blue"), 
+         species == "firstus")
+#There are more blue female Frogus firstus frogs than there are green.
+
+```
+
+```{r}
+# Code chunk to for dplyr task 2
+tidy_frogs %>%
+  filter(sex == "male") %>%
+  group_by(species) %>%
+  summarize(total_males = sum(number))
+#Frogus firstus has more males than the secondus species.
+
+```
+
+```{r}
+# Code chunk to for dplyr task 3
+tidy_frogs %>%
+  pivot_wider(names_from = sex,
+              values_from = number) %>%
+  group_by(color) %>%
+  filter(species == "secondus") %>%
+  summarize(sex_ratio = (male/female))
+#Red color has the highest ratio of male to female frogs in the secondus species.
+
+```
+
+
+
+#### Question 8
+
+```{r}
+# Code chunk for kable()
+tidy_frogs %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive"), position = "center") %>%
+  row_spec(1:2, bold = T, color = "white", background = "#4e54ed") %>%
+  row_spec(3:4, bold = T, color = "white", background = "#4eab4b") %>%
+  row_spec(5:6, bold = T, color = "white", background = "#4baba6") %>%
+  row_spec(7:8, bold = T, color = "white", background = "#d9af27") %>%
+  row_spec(9:10, bold = T, color = "white", background = "#d92d27") %>%
+  row_spec(11:12, bold = T, color = "white", background = "#c22db8")
+#Using striped & hover styling techniques the table will be interactive and change the row color if the mouse is hovering over it.
+
+#Using "responsive" argument makes the table friendly on a mobile device, you can now scroll through it.
+
+#Individually colored rows according to frog color using thr row_spec() function.
+
+```
+
+#### BONUS QUESTION
+
+```{r}
+read_csv("hiv_deaths.csv") -> hiv_deaths
+head(hiv_deaths)
+
+hiv_deaths %>%
+  pivot_longer(`1990`:`2011`, names_to = "year", 
+               values_to = "deaths") -> tidy_hiv
+head(tidy_hiv)
+
+tidy_hiv %>%
+  group_by(country) %>%
+  filter(country %in% c("United States", "Uganda")) %>%
+#Specifies which countries I want to look at.  
+  ggplot(aes(x = year, y = deaths, color = country, group = country)) +
+  geom_point() + geom_line() +
+  scale_color_manual(values = c("orangered", "palegreen4")) +
+  scale_x_discrete(breaks = c('1990', '2000', '2010')) +
+#Changes the years which will appear on the x-axis.  
+  labs(x = "Year", y = "Number of Deaths", color = "Country")
+```
+
+<answer>
+Between 1990 and 2011 the number of HIV related deaths for all age groups was very high, however the Uganda death count was much higher than the United States. Both countries saw a significant drop in HIV related deaths in the years before 2000.
+</answer>
