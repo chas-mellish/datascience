@@ -1,0 +1,449 @@
+---
+title: "Data manipulation with `dplyr` II"
+subtitle: "Data Science for Biologists, Spring 2020"
+author: "Nicholas Paterna"
+output: 
+  html_document:
+    highlight: zenburn
+    theme: sandstone
+css: static/sjs-style.css
+editor_options: 
+  chunk_output_type: inline
+---
+
+<!-- SETUP CODE CHUNK -->
+```{r setup, include=FALSE}
+## Change the default figure width and height to your liking, but within reason.
+knitr::opts_chunk$set(echo = TRUE, fig.width=8, fig.height=5, fig.align = "center")
+library(tidyverse)
+library(nycflights13)
+library(tidylog)
+library(ggrepel)
+library(emojifont)
+## if you need more packages you load them here, but you DO NOT INSTALL HERE!
+theme_set(theme_bw())
+fav_fill <- "darkgoldenrod1"
+fav_color <- "dodgerblue4"
+
+path_to_data <- "dplyr_lab2/" #Prevents us from HARDCODING the path into variables.
+```
+
+
+## Instructions
+
+**This assignment must be submitted as an RMarkdown document on Blackboard by _Thursday February 27th at 10:00 am_.** 
+
+#### You will be graded on the following criteria:
+
++ Did you enter your name appropriately into the YAML front matter?
++ Does the document knit without errors? *Adding `eval=FALSE` to code chunks with errors will not avoid penalty.*
++ Does your code in the R chunks have appropriate *comments*? 
++ Is your submission appropriately _professional_? 
+  + *You need to run SPELL CHECK before submitting*, available under `Edit->Check Spelling`, **or the ABC icon!!!!!**.
++ Do all figures have clean axis labels? (Titles are optional). There should NOT be any underscores in axis labels.
++ Did you write your written answers in the <answer>answer style</answer>?
++ Have you addressed the questions as they are asked? Be sure to limit your code and your answers to the scope of the question!
+  + If you write code that is not ultimately part of your final answer, you must either: delete it, comment it out, OR move it to a different R chunk with the added chunk options `eval=FALSE, echo=FALSE`. 
++ Is all work your own, including code and written answers?
+  + If ANY of your submitted work is not your own (with the exception of what you have been provided), you will receive a 0 on the assignment. You will be reported for a Level 2 or 3 Academic Integrity Violation, depending on the severity of the issue.
+
+<!-- HEY HAVE YOU KNITTED YET? IT'S VERY HARD TO READ INSTRUCTIONS IN RMD! -->
+
+## PREQUEL: DO NOT HARDCODE YOUR PATH TO THE DATA. 
+Watch in class, I will show you the way!
+
+
+## Questions
+
+For this lab/assignment, you will be using several datasets that are either built-in to R or an R package, or, is available as a CSV file in the `data/dplyr_lab2/` directory. For these, you'll need to read in the data to use it. **Read in the CSV files for use at the BEGINNING of the question they are used for.** Once a dataset is read in, you don't need to read it in again! Seriously, only read in a dataset once (this counts for grading!!) - otherwise you can accidentally introduce bugs, and bugs are bad. Whenever reading in a dataset, you should ALWAYS IMMEDIATELY PRINT THE DATA (tibbles only print 10 rows by default - you can just type the name of the tibble to see these). This allows readers of your reproducible and sharable document to see the data being used!
+
+
+#### Question 1
+
+Consider the two datasets named `algae_lowtide.csv` and `algae_hightide.csv`. These two datasets contain information about algal abundance measured during experiments carried out under low tide and high tide conditions, respectively. The datasets also contain information about whether there were herbivores (i.e. algae predators!) present.
+
+Create a _single tibble_ containing all information from both datasets. Your final tibble should contain three columns:
+
++ tide (should have values "high" and "low")
++ herbivores (should have values "yes" and "no")
++ area (numeric values)
+
+To accomplish this, you will need to manipulate the data using both `mutate()` and `bind_rows()`. Plan how you will do this first, and then implement below. *Your final tibble should be exported to a CSV simply called `algae.csv`*. In addition, if you do NOT print your final tibble, then you WILL LOSE POINTS - **you must ALWAYS LOOK AT YOUR DATA!!!**
+
+
+```{r}
+## This code chunk should read in, save, print the datasets only
+high <- read_csv(paste0(path_to_data, "algae_hightide.csv"))
+high
+low <- read_csv(paste0(path_to_data, "algae_lowtide.csv"))
+low
+#Use 'paste0' to attach two strings together without spaces.
+```
+
+
+```{r}
+## This code chunk should perform the analysis, and export the final CSV
+low %>%
+  mutate(tide = "low") -> low_newtidecol
+low_newtidecol
+
+high %>%
+  mutate(tide = "high") -> high_newtidecol
+high_newtidecol
+
+bind_rows(low_newtidecol, high_newtidecol) -> algae_full
+algae_full
+
+write_csv(algae_full, paste0(path_to_data, "algae_full.csv"))
+```
+
+
+
+#### Question 2
+
+Consider the two datasets named `mammals_diet.csv` and `mammals_info.csv`. These two datasets contain information about several different, including their diet, adult average body weight in kg, and the average amount of hours they sleep per night.
+Read in these two data sets, and then combine them (using the SAME ORDER of arguments each time!) with each of the functions `left_join()`, `right_join()`, `inner_join()`, and finally `anti_join()`. Examine and visually compare their outputs to understand the differences among these functions. Explain _using a markdown bulleted list_ the differences among these functions in the space below (short explanations please!). PS: Don't plagiarize from the documentation. That's an IAV.
+
+```{r}
+## This code chunk should read in, save, print the datasets only
+diet <- read_csv(paste0(path_to_data, "mammals_diet.csv"))
+diet
+info <- read_csv(paste0(path_to_data, "mammals_info.csv"))
+info
+```
+
+```{r}
+## perform joins here, and print the output to compare!
+inner_join(diet, info)
+left_join(diet, info)
+right_join(diet, info)
+anti_join(diet, info)
+```
+
+### Answer (Q2):
++ Inner join only combined the common data between the two datasets by name & order.
++ Left join brought data in from the left originating from info and filled in NA for values not found in the `mammals.info`.
++ Right join brought data in from the right originating from info and filled in NA for values for diets which aren't present in `mammals.info`.
++ Anti join only combined data that is not common between both datasets, this presented only the unique species data from `mammals.diet`.
+
+
+#### Question 3
+
+Now, consider the additional dataset named `diets_foods.csv` which gives some example foods that different "vores" might eat. Combine this dataset with the previous other two mammal datasets to *create the largest table possible (i.e. with the most number of mammals) that DOES NOT contain NAs.* There may be multiple versions of this solution (in terms of table w/ most number of rows), but only give one. Your final output must be ordered based ascending body weights.
+
+
+```{r}
+## This code chunk should read in, save, print the dataset only
+dietfoods <- read_csv(paste0(path_to_data, "diets_foods.csv"))
+dietfoods
+```
+
+```{r}
+## perform tasks here
+inner_join(info, diet) %>%
+  inner_join(dietfoods) %>%
+  arrange(bodywt_kg)
+```
+
+
+#### Question 4
+
+This question will consider the `ggplot2` dataset (it's built-in to the library and loaded already!) called `msleep` which, you guessed it, is what I used to make questions 2-3. This dataset contains many missing values. Examine the dataset visually with `View()` from the console to get a full sense. We'll use this dataset to practice working with missing data in a variety of ways.
+
++ Create **four** new versions of this data, each one saved to a new variable of its own _with a meaningful name_! The new versions should be as follows (each is independent; don't "build" instructions on top of each other). Be sure to use `dplyr` command(s)!!
+  1. All rows with NA are removed, using `drop_na()`.
+  2. All rows with NA in the `conservation` column ONLY are removed, using `drop_na()`. The result will still have NA's, just not in this column.
+  3. All rows with NA in the `brainwt` column ONLY are removed, using `drop_na()`. The result will still have NA's, just not in this column.
+  4. All NAs in the column `brainwt` are replaced with the number 0, using `replace_na()`. (But think: should you ever actually do this in real data analysis? ..NO.) 
+
+Be sure to print the output for each new version!
+
+```{r}
+## define the FOUR new data frames here
+drop_na(msleep) -> dropped_dataset
+head(dropped_dataset)
+
+msleep %>%
+  drop_na(conservation) -> dropped_conservation
+head(dropped_conservation)
+
+msleep %>%
+  drop_na(brainwt) -> dropped_brain
+head(dropped_brain)
+
+msleep %>%
+  replace_na(list(brainwt = 0)) -> zero_brain
+head(zero_brain)
+```
+
+Then, for each version AND the original untouched `msleep`, calculate the mean brain weight (`brainwt` - NOT BODY WEIGHT!) using simply `mean(dataframe$column-with-weight)`. For the original untouched version, calculate the mean TWICE: once as usual, and once with the added argument `na.rm=TRUE` provided to `mean()`.
+
+```{r}
+## calculate the SIX means here (read directions to know what this means - one for each new dataset, and two for the original)
+dropped_dataset %>%
+  summarize(avg_brainwt = mean(brainwt))
+
+dropped_conservation %>%
+  summarize(avg_brainwt = mean(brainwt))
+
+dropped_brain %>%
+  summarize(avg_brainwt = mean(brainwt))
+
+zero_brain %>%
+  summarize(avg_brainwt = mean(brainwt))
+
+msleep %>%
+  summarize(avg_brainwt = mean(brainwt))
+
+msleep %>%
+  summarize(avg_brainwt = mean(na.rm = TRUE, brainwt))
+
+```
+
+
+**Compare your outputs** - are they all the same? Which one(s) is(are) correct? Below, explain briefly which one(s) give(s) the right answer, and why the wrong ones are wrong. **This can/should be a bulleted list.**
+
+### Answer (Q4):
++ The average presented from `dropped_dataset` only applies the function `mean()` to rows that had **NO NA** values. Therefore, this is innaccurate because it removes animals with recorded brain weights but missing observations in other columns.
+
++ The average presented from `dropped_convseration` only applies the function `mean()` to rows that have NA values in the **conservation** column. Therefore, this is inaccurate for the same reason specified for `dropped_dataset`.
+
++ The average presented from `droppped_brain` applies to any brain weight observation with a recorded values, thus excluding NA values from this column **only**. This is one of the **CORRECT** averages out of the six collected as the only excluded values presented as NA in the `brainwt` column.
+
++ The average presented from `zero_brain` applies to the entire brain weight column, replacing all of the NA values with 0. Therefore, this is incorrect as all the values considered in the calculation weren't actually recorded. Thus, the sum is being divided by an inaccurate count making this average invalid.
+
++ The average presented from the `msleep` dataset applies to the entire brain weight column, including all of the NA values present here. The resulting average value is incorrect as NA is not a number, it is the absence of a number.
+
++ The average presented from the `msleep` dataset with the added `na.rm = TRUE` argument takes the average of the brain weight column after removing any NA value in this column only. This is one of the **CORRECT** averages out of the six collected as the only excluded values presented as NA in the `brainwt` column.
+
+#### Question 5
+
+For this question, we'll work with conditional mutation using the dataset `pima.csv`, which contains information about Pima Native women in the North American southwest who, as a population, tend to have elevated rates of Type II Diabetes.
+
+```{r}
+## read in, save, print dataset here
+pima <- read_csv(paste0(path_to_data, "pima.csv"))
+pima
+```
+
+
++ Create a new column called `glucose_status` using the functions `mutate()` and `case_when()` that recodes `glucose` into levels "low" (<= 70), "average" (>70, <=120), "above-average" (>120, <=160), and "high" (>160). Save your result to a new variable and print the output to confirm. **HINT!!** You may need to refer back to the intro lab to remind yourself about `&`.
+
+```{r}
+# wrangle
+pima %>%
+  mutate(glucose_status = 
+           case_when(glucose <= 70 ~ "low",
+                     glucose >70 & glucose <= 120 ~ "average",
+                     glucose >120 & glucose <=160 ~ "above-average",
+                     glucose >160 ~ "high")) -> glucose_scale
+head(glucose_scale)
+```
+
++ Visualize the relationship between your new column `glucose_status` and `diabetic`. Hint: how can we see TWO categorical variables in one plot? You've done this before! It's a barplot! **Make sure it is DODGED** and not stacked. **Importantly** when you first make this plot it will likely have undesirable visual features. To fix this, read over [this documentation](https://ggplot2.tidyverse.org/reference/position_dodge.html) and find the solution to implement here (2nd plot from the top).
+```{r}
+# your plot! make it nice!
+glucose_scale %>%
+  ggplot(aes(x = diabetic, fill = glucose_status)) +
+  geom_bar(position = "dodge") +
+  labs(x = "Diabetic", y = "Count", fill = "Glucose Status")
+```
+
++ Use `if_else()` and `mutate()` to create a new column called "pregnant" to say "Yes" if the individual ever was pregant, and "No" if the individual never had a pregnancy. Save the output for subsequent use.
+
+```{r}
+#ifelse
+pima %>%
+  mutate(pregnant = if_else(npreg >0, "Yes", "No")) -> pregnancy
+head(pregnancy)
+```
+
++ Check that your new pregnant variable is correct by wrting code to reveal: Is the sum of npreg for all rows where pregnant is "No" 0? If this is true, it worked! This can be done entirely with `dplyr` commands. This is how one might write an assertion - ask if this condition is true, and if not, the script should die. For an added challenge, actually write an assertion in the code chunk (to this end, check out the function `dplyr::pull()`. Super useful.)
+
+```{r}
+## check here
+pregnancy %>%
+  filter(pregnant == "No") %>%
+  summarize(sum(npreg))
+
+## Pull function isolates a column from the dataset and creates an individual array. Using pull here an assertion is created, this checks to make sure I performed the task I wanted.
+
+## An assertion is NOT ALWAYS a pull.
+
+pregnancy %>%
+  filter(pregnant == "No") %>%
+  summarize(sumpreg = sum(npreg)) %>%
+  pull(sumpreg)
+
+```
+
+
++ From the original dataset, _replace_ the column `diabetic` with a new version that says `TRUE` and `FALSE` instead of Yes and No. Do this in two ways: with `if_else()` and with `case_when()`. Be careful not to actually overwrite the original version of the data itself!!
+
+```{r}
+# solution with if_else
+pima %>%
+  mutate(diabetic = 
+         if_else(diabetic == "Yes", "TRUE", "FALSE")) -> diabetic_if
+head(diabetic_if)
+```
+
+```{r}
+# solution with case_when
+pima %>%
+  mutate(diabetic = 
+           case_when(diabetic == "Yes" ~ "TRUE",
+                     diabetic == "No" ~ "FALSE")) -> diabetic_case
+head(diabetic_case)
+```
+
+
+#### Question 6
+
+The `chickwts` dataset (built-in to base R) contains information on the weight of chicks after being fed different feed supplements. The different feed supplements are labeled casein, horsebean, linseed, meatmeal, soybean, and sunflower in the `feed` column. I have created a new dataset in `feed_protein.csv` that contains the grams of protein per cup for each of these feeds.
+
+```{r}
+## look at chickwts, read/save/look at the external data set here
+chicks <- read_csv(paste0(path_to_data, "feed_protein.csv"))
+head(chicks)
+```
+
+
+Using your `dplyr` functions, combine the two data-frames so that there is an additional `g_protein` column and all of the original columns and rows in chickwts are retained (but don't overwrite anything! save it to something else!). Hint: you'll need to make sure the datasets are compatible before you can join them (check out `dplyr::rename()` and be sure to specify arguments in the right order!).
+**For another bonus**, write an assertion to check that the final data frame contains at least TWO correct components, and do NOT DO ANY HARDCODING!!! You will not lose points for a bad assertion here, just don't leave any majors bugs behind you.
+
+```{r}
+## wrangle it here
+bigchicks <- chickwts
+chicks %>%
+  rename(feed = feed_type) %>%
+  full_join(by = "feed", bigchicks, chicks) -> final_chicks
+head(final_chicks)
+
+## HERE's HOW to think about this assertion:
+# for the answer to be right, we know there needs to be three columns:
+correct_ncol <- 3
+if (ncol(final_chicks) != correct_ncol)
+{
+  stop("You have too many columns!")
+}
+
+if (ncol(final_chicks) == correct_ncol)
+  {
+    print("Good job, you have three columns!")
+  }
+```
+
+
+Finally, make a visualization (specifically a scatterplot) showing the relationship between _median_ chicken weight across nutritional content (measured as grams of protein per cup). Each point should be additionally labeled with the name of its corresponding feed. First, do this with `geom_point()` and `geom_text()` (don't spend much time here, the punchline is the next task - style the figure appropriately but don't try to "fix" it - you'll see what I mean).
+OMG another hint!! Summarize will remove unnecessary columns from your data too. To re-get those columns, either: a) also group by them (IF IT MAKES SENSE), or b) you'll need to use some join magic.
+
+```{r}
+### version of plot with point/text
+final_chicks %>%
+  group_by(feed, g_protein) %>%
+  summarize(med_weight = median(weight))%>%
+  ggplot(aes(x = med_weight, y = g_protein)) +
+  geom_point(aes(color = feed)) +
+  geom_text(aes(label = feed, color = feed)) +
+  labs(x = "Median Weight", y = "Grams of Protein") +
+  theme(legend.position = "NONE")
+```
+
+Now, feel disappointed in the viz and feel thrilled to learn about the library [`ggrepel`](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html). (GO OVER THE POST! GO OVER THE POST! The word ggrepel back there is a LINK!) Load this library in the setup chunk (not here!), and use it below to make an updated version of the figure but instead of `geom_text()`, use EITHER `geom_text_repel()` or `geom_label_repel()` - your choice! Ensure a compelling and attractive figure (to the extent possible with this data..)
+
+```{r}
+###fig using ggrepel
+final_chicks %>%
+  group_by(feed, g_protein) %>%
+  summarize(med_weight = median(weight))%>%
+  ggplot(aes(x = med_weight, y = g_protein)) +
+  geom_point(aes(color = feed)) +
+  geom_text_repel(aes(label = feed, color = feed)) +
+  labs(x = "Median Weight", y = "Grams of Protein") +
+  theme(legend.position = "NONE")
+```
+
+
+##### Question 7 (Bonus Question)
+
+One more big one and you're done! (Un)happily, this question uses _all the skillz_. For this question, you will using data from the `nycflights13` library (pre-loaded in the setup chunk). There are five datasets from this package, and we will focus on the two `flights` and `planes`. Examine these using `View()` from the console (not in this Rmarkdown!). 
+
+`flights` contains information about individual departures. Individual planes are indicated by their tail number (`tailnum`). Information about individual planes is available in the data `planes`. In particular, this tibble lists the year each individual plane was manufactured. From `flights` and `planes`, make a combined tibble that contains the following columns:
+
++ tail number
++ year of manufacture for each plane.
++ month of departure
++ mean air time for each plane at each month basis (HINT! does this exist already or do you to make it? You have to make it. Sounds like a grouping and summarizing to me, just saying.) 
+
+You should ONLY CONSIDER planes that flew to LAX (`dest`) in summer months June, July, and August (`month`). Once you have created your beautifully wrangled data, make a scatterplot of mean arrival delay across year of manufacture, ) 
+
+Consider best-plotting principles and choose your own stylstic adventure. In 1-2 sentences below, describe trends you observe, or fail to observe as the case may be!
+
+HINTS AND RULES: 
+
++ Wrangle hints/rules:
+  + First subset and wrangle each of the two data frames to only the columns/rows of interest. Then join together the subsetted versions. When joining, you should do so by ONLY CONSIDERING the info shared by both tibbles (which join is this?)
+  + Do NOT hardcode months or destination of LAX when you filter!!!!! Predefine what destination, months you are interested in and then use them in your code
+  + For months, don't forget `%in%`!
+  + Remember - the only shared names between dataframes you want to join should be the names you want to join by. This is important!!! Hint2: year in `flights` is NOT the same as year in `planes`.
+  + Are your means being funky? Did you apply your new question 4 knowledge? Definitely not a great idea to keep around NA's **in the `arr_time` column specifically.**
+  + All wrangling should be in a SINGLE PIPE! Do not even attempt to write this all at once. Write one line at a time, check it, and then keep tacking on the pipes.
+  + For your plot, you will months to be their NAMES not NUMBERS! This involves...recoding your data using your new conditional mutation skills during the wrangling stage! (You can hardcode month names for this recoding.)
+
++ Plot hints/rules:
+  + Summer months should be clearly distinguished through faceting, and color if you wish - but NOT THE DEFAULT COLORS!
+  + Make sure there is a separate trend line for each month. The line should be NOT be curvy! Straight line! 
+  + Make sure the trend lines are black and NOT the same color as the points
+  + Appropriate labels and all that jazz
+
+```{r}
+### wrangle here
+flights %>%
+  filter(month %in% c("6", "7", "8")) %>%
+  filter(dest == "LAX") %>%
+  select(tailnum, month, air_time, dest) -> summertime
+head(summertime)
+
+planes %>%
+  select(tailnum, year) -> manu_info
+head(manu_info)
+
+inner_join(summertime, manu_info) -> joined_flights
+head(joined_flights)
+
+joined_flights %>%
+  drop_na() %>%
+  group_by(month, tailnum, year) %>%
+  summarize(avg_airtime = mean(air_time)) -> question_7
+head(question_7)
+
+```
+
+
+```{r}
+## r code to plot goes here
+question_7 %>%
+  ggplot(aes(x = avg_airtime, y = year)) +
+  geom_point(aes(color = month)) +
+  scale_color_gradient(low = "#edc15a", high = "#f88379") +
+  facet_grid(~ month) +
+  labs(x = "Average Airtime", y = "Year") +
+  theme(legend.position = "NONE",
+        axis.title = element_text(size = 10))
+```
+
+
+**For an absolutely ridiculous bonus**, use emojis instead of points. [See this vignette](https://cran.r-project.org/web/packages/emojifont/vignettes/emojifont.html). Note: This package is already installed in the cloud but it is not loaded. Please make sure to use only the most absurd emoji(s) for your points.
+
+```{r}
+### emoji plot
+question_7 %>%
+  ggplot(aes(x = avg_airtime, y = year, color = month)) +
+  geom_text(label = emoji('heart'), size = 3, replace = TRUE) +
+  scale_color_gradient(low = "#e69ea9", high = "#b76e79") +
+  facet_grid(~ month) +
+  labs(x = "Average Airtime", y = "Year") +
+  theme(legend.position = "NONE",
+        axis.title = element_text(size = 10))
+```
