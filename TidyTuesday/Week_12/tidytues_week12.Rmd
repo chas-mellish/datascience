@@ -23,7 +23,7 @@ office_ratings <- readr::read_csv('https://raw.githubusercontent.com/rfordatasci
 ```
 
 ### TidyTuesday Week 12
-Hi, this is my fourth time attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a smidge_** of experience in coding thanks to [Dr. Stephanie Spielman](https://twitter.com/stephspiel). R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism or helpful tips in trimming my code!!
+Hi, this is my fifth time attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a smidge_** of experience in coding thanks to [Dr. Stephanie Spielman](https://twitter.com/stephspiel). R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism or helpful tips in trimming my code!!
 
 ```{r Variable Coding}
 
@@ -55,6 +55,7 @@ tidy_office %>%
   ggplot(aes(x = season, y = avg_rating, fill = season)) +
   geom_col(alpha = 0.7) +
   scale_fill_gradient(low = "#6ca66a", high ="#2f4f48") +
+#I love this function, I use the ColorPicker on Google to find the Hex#s for the colors I want to see in my figure.  
   labs(x = "Season", y = "Average Rating") +
   theme(legend.position = "none") +
   ylim(0 ,10) -> half_officeplot
@@ -66,11 +67,12 @@ tidy_office %>%
   labs(x = "Season", y = "Total Votes", fill = "Season") -> sechalf_officeplot
 
 (half_officeplot + sechalf_officeplot) -> office_plot
+#Using this awesome package called 'patchwork' I was able to make two separate plots, save them as variables, and then glue them together with a little electronic scrapbooking.
 
 ggsave(paste0(tidy_path, figure_name), office_plot, height = 4, width = 6)
 office_plot
 ```
 
-This week I wanted to use the skills we learned this past week in creating a plot that reflected the total cost (room & board + tuition) for students based on residency. I know that when I graduated high school cost was the most important factor when deciding where to go!
+I almost forgot to make my plot this week because I have been SO engrossed in Animal Crossing: New Horizon. I am not going to lie, I would love to see some AC themed datasets in future #TidyTuesday repos.
 
-Here I tidied the data using the `pivot_longer()` function which I **LOVE** and used my new [stringr](https://stringr.tidyverse.org/reference/index.html) skills to tidy the output from this. I wanted to go a little further by faceting my figure by degree length or type but the output wasn't satisfying or necessarily informative so I stuck with what I had. I also avoided hard-coding again which is always beneficial! Check out my [GitHub](https://github.com/npaterna/datascience/tree/master/TidyTuesday) for past and future submissions!!
+I have never seen The Office, I know shame on me, so I decided to go for simplicity with observations I could understand without utilizing the Shrute package. I couldn't decide between the average rating per season or the total number of votes so I decided to just throw both together! I used a package that we utilized in class called `patchwork` and it is, for lack of better word, delicious. I hope you enjoy my plot, you can find this and future entries on my [GitHub](https://github.com/npaterna/datascience/tree/master/TidyTuesday).
