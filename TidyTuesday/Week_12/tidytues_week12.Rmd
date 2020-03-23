@@ -1,0 +1,76 @@
+---
+title: "#TidyTuesday Submission"
+subtitle: "Data Science for Biologists, Spring 2020"
+author: "Nicholas Paterna"
+date: "March 22, 2020"
+output:
+  html_document:
+    highlight: tango
+    theme: yeti
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+library(tidyverse)
+library(tidylog)
+library(patchwork)
+theme_set(theme_minimal())
+
+office_ratings <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-17/office_ratings.csv')
+
+```
+
+### TidyTuesday Week 12
+Hi, this is my fourth time attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a smidge_** of experience in coding thanks to [Dr. Stephanie Spielman](https://twitter.com/stephspiel). R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism or helpful tips in trimming my code!!
+
+```{r Variable Coding}
+
+tidy_path <- "/Users/nickpaterna/datascience/TidyTuesday/Week_12/"
+#This variable will tell the figure where to save when I apply ggsave!
+
+figure_name <- "tidytues_week12.png"
+#Rather than re-typing this into ggsave I can just use this!
+```
+
+## Avoid Hard-coding!
+One of the most important things that my professor stresses is a complete aversion to HARD-CODING, or explicitly re-typing code in a large script. It might not make a lot of sense to apply these practices on a small assignment but the more often I apply it the easier to apply it is in the future! (Also the second visible code chunk gives my submission some more flavor!)
+
+
+```{r TT_Week11, fig.height=4, fig.width=6}
+
+office_ratings %>%
+  select(season, imdb_rating, total_votes) %>%
+#Isolating columns of interest.  
+  group_by(season) %>%
+  summarize(avg_rating = mean(imdb_rating),
+            tot_votes = sum(total_votes)) -> tidy_office
+#Creates two new columns with total votes & average rating, summarized by season.
+
+tidy_office
+#Displaying the tidy data to show changes.
+  
+tidy_office %>%
+  ggplot(aes(x = season, y = avg_rating, fill = season)) +
+  geom_col(alpha = 0.7) +
+  scale_fill_gradient(low = "#6ca66a", high ="#2f4f48") +
+  labs(x = "Season", y = "Average Rating") +
+  theme(legend.position = "none") +
+  ylim(0 ,10) -> half_officeplot
+
+tidy_office %>%
+  ggplot(aes(x = season, y = tot_votes, fill = season)) +
+  geom_col(alpha = 0.7) +
+  scale_fill_gradient(low = "#6ca66a", high ="#2f4f48") +
+  labs(x = "Season", y = "Total Votes", fill = "Season") -> sechalf_officeplot
+
+(half_officeplot + sechalf_officeplot) -> office_plot
+
+ggsave(paste0(tidy_path, figure_name), office_plot, height = 4, width = 6)
+office_plot
+```
+
+This week I wanted to use the skills we learned this past week in creating a plot that reflected the total cost (room & board + tuition) for students based on residency. I know that when I graduated high school cost was the most important factor when deciding where to go!
+
+Here I tidied the data using the `pivot_longer()` function which I **LOVE** and used my new [stringr](https://stringr.tidyverse.org/reference/index.html) skills to tidy the output from this. I wanted to go a little further by faceting my figure by degree length or type but the output wasn't satisfying or necessarily informative so I stuck with what I had. I also avoided hard-coding again which is always beneficial! Check out my [GitHub](https://github.com/npaterna/datascience/tree/master/TidyTuesday) for past and future submissions!!
