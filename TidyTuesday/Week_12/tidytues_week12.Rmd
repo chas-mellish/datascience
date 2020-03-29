@@ -38,7 +38,7 @@ figure_name <- "tidytues_week12.png"
 One of the most important things that my professor stresses is a complete aversion to HARD-CODING, or explicitly re-typing code in a large script. It might not make a lot of sense to apply these practices on a small assignment but the more often I apply it the easier to apply it is in the future! (Also the second visible code chunk gives my submission some more flavor!)
 
 
-```{r TT_Week11, fig.height=4, fig.width=6}
+```{r TT_Week12, fig.height=4, fig.width=6}
 
 office_ratings %>%
   select(season, imdb_rating, total_votes) %>%

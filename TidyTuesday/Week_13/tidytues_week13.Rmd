@@ -1,0 +1,81 @@
+---
+title: "#TidyTuesday Submission"
+subtitle: "Data Science for Biologists, Spring 2020"
+author: "Nicholas Paterna"
+date: "March 22, 2020"
+output:
+  html_document:
+    highlight: pygments
+    theme: yeti
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+library(tidyverse)
+library(tidylog)
+library(patchwork)
+theme_set(theme_minimal())
+
+tbi_age <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-24/tbi_age.csv')
+
+tbi_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-24/tbi_year.csv')
+
+tbi_military <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-24/tbi_military.csv')
+
+```
+
+### TidyTuesday Week 13
+Hi, I am once again attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a smidge_** of experience in coding thanks to [Dr. Stephanie Spielman](https://twitter.com/stephspiel). R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism or helpful tips in trimming my code!!
+
+```{r Variable Coding}
+
+tidy_path <- "/Users/nickpaterna/datascience/TidyTuesday/Week_13/"
+#This variable will tell the figure where to save when I apply ggsave!
+
+figure_name <- "tidytues_week13.png"
+#Rather than re-typing this into ggsave I can just use this!
+```
+
+## Avoid Hard-coding!
+One of the most important things that my professor stresses is a complete aversion to HARD-CODING, or explicitly re-typing code in a large script. It might not make a lot of sense to apply these practices on a small assignment but the more often I apply it the easier to apply it is in the future! (Also the second visible code chunk gives my submission some more flavor!)
+
+```{r TT_Week13, fig.height=4, fig.width=6}
+tbi_age %>%
+  select(age_group, type, number_est) %>%
+  filter(age_group != "Total") %>%
+  filter(type == "Deaths") %>%
+  #Removing the 'Total' observation & focusing on only Deaths caused by TBI
+  drop_na() %>%
+  #Some values were reported as NA under type causing issues when making a fig later
+  group_by(age_group, type) %>%
+  summarize(tot_est = sum(number_est)) %>%
+  ungroup() %>%
+  #To apply str_replace_all() I needed to ungroup the age_group col
+  mutate(age_group = str_replace_all(age_group, c("0-4" = "0-04",
+                                                  "5-14" = "05-15",
+                                                  "0-17" = "1-17" ))) %>%
+  arrange(age_group) -> brain_plot_data
+  #Saving the wrangled data for application in my plot and arranging by INCREASING age
+  
+ggplot(brain_plot_data, aes(x = age_group, y = tot_est, fill = age_group)) +
+  geom_col(color = "black") +
+  #I like to frame the bars in black so the lighter shades are easily visualized
+  scale_fill_brewer(palette = "Spectral") +
+  #This is new for me! Applies a pre-set palette to my fills, I like rainbows
+  labs(x = "Age Group", y = "Estimated Total TBI Deaths") +
+  theme_minimal() + theme(legend.position = "NULL") -> brain_plot
+  #Hiding the legend because it isnt necessary and saving plot for ggsave below
+
+
+ggsave(paste0(tidy_path, figure_name), brain_plot, height = 4, width = 6)
+brain_plot
+```
+
+I wasn't sure what I wanted to achieve this week as with every #TidyTuesday submission I attempt to re-apply knowledge from my Data Science for Biologists course. We have been put on remote learning in these past two weeks as our world changes overnight with the spread of this virus. I haven't had the in-class instruction I am used to for learning R so in the words of Natalie Jane Imbruglia, *my inspiration has run dry*.
+
+Therefore, please enjoy my attempt to re-apply my dplyr skills in visualizing the distribution of TBI related deaths across various age groups in the United States. I had to tweak the ordering to make it flow correctly so please excuse my placement of the "1-17" group. I also wanted to try my hand at using `scale_fill_brewer()` which many of my classmates enjoy applying to their figures!
+
+I hope you enjoy my plot, you can find this and future entries on my [GitHub](https://github.com/npaterna/datascience/tree/master/TidyTuesday).
+
