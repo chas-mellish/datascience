@@ -1,0 +1,34 @@
+   20  clear #Everything from here down constitutes the UNIX practice set.
+   21  cd
+   22  touch my_file.txt
+   23  ls
+   24  ls -lh
+   25  ls -lah
+   26  ls -lh
+   27  cat my_file.txt
+   28  mkdir unix_practice
+   29  ls
+   30  mv my_file.txt unix_practice/
+   31  cd unix_practice
+   32  pwd
+   33  cp my_file.txt my_duplicate_file.txt
+   34  rm my_file.txt
+   35  ls
+   36  mv my_duplicate_file.txt my_only_file.txt
+   37  ls
+   38  cd ..
+   39  pwd
+   40  rm -r unix_practice
+   41  ls
+   42  history
+   43  mkdir unix_more_practice
+   44  cd unix_more_practice
+   45  touch scrip1.R otherscript2.R script3.Rmd
+   46  ls *R
+   47  ls s*
+   48  mkdir scripts_only
+   49  cp *R scripts_only
+   50  ls scripts_only/
+   51  rm s*
+   52  ls
+   53  history
