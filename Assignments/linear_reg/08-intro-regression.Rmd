@@ -151,14 +151,13 @@ Now that you have confirmed the variance is equal across groups (hint: it is), b
 fit_2 <- lm(formula = respiratory_rate ~ species, data = rowan)
   #Always use y ~ x for formula!!!
 
-augment(fit, rowan) -> augmented_fit
+augment(fit, rowan) -> augmented_fit2
   #We use this function from broom to create a tibble with the residuals
 
-qqnorm(augmented_fit$.resid, pch = 19)
-qqline(augmented_fit$.resid, col = "goldenrod")
+qqnorm(augmented_fit2$.resid, pch = 19)
+qqline(augmented_fit2$.resid, col = "goldenrod")
   #Here the pch is the spacing of the points, we are plotting the residual values from the augmented fit. 
  #Using base R to create a linear regression with the residual values vs. the experimental observations.
-
 
 ```
 
@@ -170,6 +169,7 @@ summary(fit_2)
 
 unique(rowan$species)
 #This shows us the unique variables in the species col so we can determine which of these was the "baseline" for our model
+
 ```
 
 + **Intercept Interpretation**
@@ -184,6 +184,8 @@ unique(rowan$species)
 
 + **Model Conclusion**
   + Entirely uninformative model, species does NOT predict or explain the respiratory rate of the trees.
+  
+  + Y = -0.018830X1 + -0.006180X2 + 0.148680
 
 Finally, make a stylish figure of your findings, choosing your own geom!
 
@@ -206,7 +208,6 @@ ggplot(rowan, aes(x = species, y = respiratory_rate)) +
 
 > Background for this completing question is under the header "LM with numeric and categorical predictors" in the linear regression tutorial
 
-
 Construct a linear model that examines how BOTH *species* and *leaf_len* as independent effects might explain variation in *respiratory rate*. Again, take the following steps one by one:
 
 Since we already checked assumptions for `species` in the last question, make an appropriate plot to check the linearity assumption for `leaf_len`:
@@ -214,27 +215,51 @@ Since we already checked assumptions for `species` in the last question, make an
 ```{r}
 ### figure to check assumption goes here.
 ### no need for fancy, can keep labels as is, etc.
-```
+ggplot(rowan, aes(x = leaf_len, y = respiratory_rate)) +
+  geom_point()
 
+```
 
 Build your linear model, and evaluate whether the model residuals were normally distributed:
 
 ```{r}
 ### build model and check normal residuals
 ### do not look at the model summary yet!
+fit_3 <- lm(respiratory_rate ~ species + leaf_len, data = rowan)
+
+augment(fit_3, rowan) -> augmented_fit3
+  #We use this function from broom to create a tibble with the residuals
+
+qqnorm(augmented_fit3$.resid, pch = 19)
+qqline(augmented_fit3$.resid, col = "forestgreen")
+  #Here the pch is the spacing of the points, we are plotting the residual values from the augmented fit. 
+ #Using base R to create a linear regression with the residual values vs. the experimental observations.
+
 ```
 
 Now that you have confirmed the residuals are roughly normally distributed (hint: they are), examine the output from your linear model. In the space below the code chunk, discuss in *bullet form* (1-2 sentences each): a) Provide an interpretation of the intercept, b) Provide an interpretation of the `species` coefficient, c) Provide an interpretation of the `leaf_len` coefficient d) Provide an interpretation of the $R^2$ value, and finally e) Conclude whether species is a strong or weak predictor of respiratory rate, consider "biological significance" (effect size!) as well as statistical significance.
 
 ```{r}
 ## examine model output here
+summary(fit_3)
+
 ```
 
-+ Intercept interpretation
-+ species coefficient interpretation
-+ leaf_len coefficient interpretation
-+ $R^2$ interpretation
-+ Model conclusion
++ **Intercept Interpretation**
+  + For microphylla trees we expect a respiratory rate of 0.176 when **leaf length is 0**, this is highly significant (p < 2e-16). *However, this is biologically unrealistic.*
+  
++ **Species Coefficient Interpretation**
+  + When controlling for leaf length, coefficients are the change from baseline species
+
+  + Controlling for leaf length, *oligodonta* have an average respiratory rate of 0.003898 lower than microphylla. But this is not significant (p = 0.0375), so effectively there is no difference between these species.
+  
+  + Controlling for leaf length, *argentiana* have an average respiratory rate of 0.050740 higher than microphylla. But this is not significant (p = 0.0864), so effectively there is no difference between these species.
+
++ **$R^2$ Interpretation**
+  + Our $R^2 = 0.01398$ which is not NOT SIGNIFICANT because the p-value is large (p = 0.06687). No evidence that any variation is explained, 100% of variation in respiratory rate is unexplained by model.
+
++ **Model Conclusion**
+  + Entirely uninformative model, leaf length does NOT predict or explain the respiratory rate of the trees.
 
 Finally, make a stylish scatterplot of your findings:
 
@@ -245,5 +270,11 @@ Finally, make a stylish scatterplot of your findings:
 
 ```{r}
 ### stylish plot goes here
+ggplot(rowan, aes(x = leaf_len, y = respiratory_rate, color = species)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(x = "Leaf Length", y = "Respiratory Rate", color = "Species") +
+  theme_minimal()
+#The overlapping of the conf intervals shows that this model is poor.
 ```
 
