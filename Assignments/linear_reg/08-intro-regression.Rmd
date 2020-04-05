@@ -13,6 +13,10 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.width = 6, fig.height = 4,
+                      fig.align = 'center')
 library(tidyverse)
 library(broom)
 ```
@@ -198,8 +202,16 @@ Finally, make a stylish figure of your findings, choosing your own geom!
 ### stylish plot goes here
 ggplot(rowan, aes(x = species, y = respiratory_rate)) +
   geom_jitter(width = 0.15) +
-  stat_summary(color = "yellowgreen")
+  stat_summary(color = "yellowgreen") +
   #Adds a point into the plot that shows the std error for all of the points
+  annotate("text", label = "R^2 == 0.002792",
+           x = 2, y = 0.38,
+           size = 5,
+           parse = TRUE) +
+  labs(title = "Regression of Species Explaining Resp Rate",
+       subtitle = "Y = -0.018830X1 + -0.006180X2 + 0.148680",
+       x = "Species", y = "Respiratory Rate") +
+  theme_minimal()
 
 ```
 
@@ -242,7 +254,6 @@ Now that you have confirmed the residuals are roughly normally distributed (hint
 ```{r}
 ## examine model output here
 summary(fit_3)
-
 ```
 
 + **Intercept Interpretation**
@@ -260,6 +271,8 @@ summary(fit_3)
 
 + **Model Conclusion**
   + Entirely uninformative model, leaf length does NOT predict or explain the respiratory rate of the trees.
+  
+  + Y = -0.003898X1 + 0.050740X2 - 0.003054X3 + 0.175923
 
 Finally, make a stylish scatterplot of your findings:
 
@@ -273,7 +286,13 @@ Finally, make a stylish scatterplot of your findings:
 ggplot(rowan, aes(x = leaf_len, y = respiratory_rate, color = species)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  labs(x = "Leaf Length", y = "Respiratory Rate", color = "Species") +
+  labs(title = "Regression of Leaf Length Explaining Resp Rate",
+       subtitle = "Y = -0.003898X1 + 0.050740X2 - 0.003054X3 + 0.1759230",
+       x = "Leaf Length", y = "Respiratory Rate", color = "Species") +
+  annotate("text", label = "R^2 == 0.01398",
+           x = 35, y = 0.4,
+           size = 5,
+           parse = TRUE) +
   theme_minimal()
 #The overlapping of the conf intervals shows that this model is poor.
 ```
