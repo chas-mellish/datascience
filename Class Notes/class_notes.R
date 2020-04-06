@@ -201,14 +201,19 @@ qqnorm(augmented_fit$.resid)
 #Using base-R to create a Q-Q plot which visualizes how normal our residual values are.
 
 
+#### April 6, 2020 ####
 
+model_fit <- lm(body_depth ~ sex, data = crabs)
 
+summary(model_fit)
+#Avg body depth of Female is 13.7 (intercept)
+#Avg body depth of Male is 14.3 (intercept + sexM)
+#Poor p-value AND the R^2 is too low to matter
 
-
-
-
-
-
+crabs %>%
+  group_by(sex) %>%
+  summarize(avg_bd = mean(body_depth))
+#This shows the explanation from the summary above
 
 
 
