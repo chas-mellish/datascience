@@ -239,8 +239,10 @@ tibble(Age = c(37, 65, 19),
        Abdomen = c(110.6, 90.1, 68),
        Thigh = c(71.7, 77.5, 48.1),
        Forearm = c(31.2, 32.2, 23.8),
-       Wrist = c(19.2, 18.2, 16.1))
+       Wrist = c(19.2, 18.2, 16.1)) -> new_men
+new_men
 
+modelr::add_predictions(new_men, final_model)
 
 ```
 
@@ -248,10 +250,17 @@ tibble(Age = c(37, 65, 19),
 
 Stick the answer after the colon for each bullet **in bold**:
 
-+ Bob's predicted body fat percent is: 
-+ Bill's predicted body fat percent is: 
-+ Fred's predicted body fat percent is: 
++ Bob's predicted body fat percent is: **33.6%**
++ Bill's predicted body fat percent is: **22.6%**
++ Fred's predicted body fat percent is: **2.93%**
 
 
 **BONUS QUESTION!**
 Which of the three predictions (Bob, Bill, and Fred) do you think is LEAST reliable? You may need some code to figure out which one, so add in below as needed!!
+
+```{r}
+ggplot(fatmen, aes(x = , y = Percent)) +
+  geom_point() + geom_smooth(method = "lm")
+
+```
+
