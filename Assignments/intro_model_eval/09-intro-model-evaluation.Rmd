@@ -140,13 +140,21 @@ my_bodyfat_model <- function(input_data){
 ## perform k-fold cross validation, using this variable in your code
 number_folds <- 15
 
-## Calculate the mean R^2 and RMSE 
 crossv_kfold(fatmen, number_folds) %>%
   mutate(model = purrr::map(train, my_bodyfat_model),
          rsquared = purrr::map2_dbl(model, test, rsquare),
-         rmse_value = purrr::map2_dbl(model, test, rmse))
+         rmse_value = purrr::map2_dbl(model, test, rmse)) -> final_kfold
+
+## Calculate the mean R^2 and RMSE 
+mean(final_kfold$rsquared)
+mean(final_kfold$rmse_value)
+
 
 ## Make figures for R^2 and RMSE, which clearly show the MEAN values for each distribution using stat_summary() or similar (unless you make a boxplot, which already shows the median)
+ggplot(final_kfold, aes(x = "", y = rmse_value)) +
+  geom_violin(alpha = 0.7, fill = "dodgerblue2") +
+  stat_summary()
+
 ```
 
 #### Part 2.2 questions: Answer the questions in the templated bullets!
@@ -166,8 +174,12 @@ crossv_kfold(fatmen, number_folds) %>%
 ```{r}
 ## perform LOOCV (using the function my_bodyfat_model defined in Part 2.2)
 
+crossv_loo(fatmen) %>%
+  mutate(model = purrr::map(train, my_bodyfat_model),
+         rmse_value = purrr::map2_dbl(model, test, rmse)) -> final_loo
 
 ## Calculate the mean of RMSE 
+mean(final_loo$rmse_value)
 
 ## Make figure of RMSE distribution, which clearly shows the MEAN value for the distribution using stat_summary() (unless you make a boxplot, which already shows the median)
 ```
@@ -216,8 +228,19 @@ New men have arrived, and we want to use our model to predict their body fat per
   + 16.1 cm Wrist circumference
 
 ```{r}
+fat_formula <- as.formula("Percent ~ Age + Weight + Neck + Abdomen + Thigh + 
+    Forearm + Wrist")
+
 ## Make a SINGLE tibble with THREE ROWS (one per observed new man), and use this tibble to predict outcomes with `modelr::add_predictions()
 ## HINT: See the tidyr assignment for different ways to make a tibble directly within R
+tibble(Age = c(37, 65, 19),
+       Weight = c(195, 183, 121),
+       Neck = c(43.6, 41.2, 30.2),
+       Abdomen = c(110.6, 90.1, 68),
+       Thigh = c(71.7, 77.5, 48.1),
+       Forearm = c(31.2, 32.2, 23.8),
+       Wrist = c(19.2, 18.2, 16.1))
+
 
 ```
 
