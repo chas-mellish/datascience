@@ -17,6 +17,10 @@ library(tidyverse)
 library(broom) 
 library(modelr)
 library(patchwork)
+
+set.seed(812)
+#This is my birthday!
+
 ```
 
 ## Instructions
@@ -117,11 +121,11 @@ rmse(trained_model, testing_data)
 
 1. Compare the training data $R^2$ to the testing data $R^2$. Which is higher (i.e., does the model run on training or testing data explain more variation in Percent), and is this outcome expected?
 
-  + When comparing $R^2$ values between the training and testing data it appears that the training model has a higher value ($R^2 = 0.767$), while the testing model was lower ($R^2 = 0.667$). This is expected!
+  + When comparing $R^2$ values between the training and testing data it appears that the training model has a higher value ($R^2 = 0.744$), while the testing model was lower ($R^2 = 0.72$). This is expected!
 
 2. Compare the training data *RMSE* to the testing data *RMSE*. Which is *lower* (i.e., is there more error from the model run on training or testing data), and is this outcome expected?
 
-  + The *RMSE* value for these models differed in a similar manner, the resulting *RMSE* for the training model was lower (4.06) than the testing model (4.69) which is also expected.
+  + The *RMSE* value for these models differed in a similar manner, the resulting *RMSE* for the training model was lower (4.25) than the testing model (4.30) which is also expected.
 
 
 
@@ -171,11 +175,11 @@ rmse_plot2.2 + rsquared_plot2.2
 
 1. Examine your distribution of $R^2$ values. What is the average $R^2$, and how does it compare to the **testing $R^2$** from Part 1?
 
-    + The average $R^2$ of this model is 0.695, which is to say that this model can explain almost 70% of the data. This is *lower* than the $R^2$ presented in Part 1 of this assignment, where 74.2% of varation in bodyfat percentage was explained by the model.
+    + The average $R^2$ of this model is 0.66, which is to say that this model can explain 66% of the data. This is *lower* than the $R^2$ presented in Part 1 of this assignment, where 74.2% of varation in bodyfat percentage was explained by the model.
 
 2. Examine your distribution of *RMSE* values. What is the average *RMSE*, and how does it compare to the **testing RMSE** from Part 1?
 
-    + The average RMSE value for this model was 4.37, this is higher than the RMSE found in Part 1 of this assignment (4.23). This means that the first model had more accuracy in its explanatory power, smaller RMSE values are favorable.
+    + The average RMSE value for this model was 4.40, this is higher than the RMSE found in Part 1 of this assignment (4.23). This means that the first model had more accuracy in its explanatory power, smaller RMSE values are favorable.
   
 
 
@@ -204,7 +208,7 @@ ggplot(final_loo, aes(x = "", y = rmse_value)) +
 
 1. Examine your distribution of *RMSE* values. What is the average *RMSE*, and how does it compare to the **testing RMSE** from Part 1? How does it compare to the average *RMSE* from k-fold cross validation?
 
-    + The average RMSE value for this model was 3.58, this was highly favorable especially in comparison with the previous evaluations. In both Part 1 (4.23) and Part 2.2 (4.37) the average RMSE was higher than the value generated from this leave-one-out cross validation.
+    + The average RMSE value for this model was 3.58, this was highly favorable especially in comparison with the previous evaluations. In both Part 1 (4.23) and Part 2.2 (4.40) the average RMSE was higher than the value generated from this leave-one-out cross validation.
 
 
 ### Part 2.4: Wrap-up
@@ -275,55 +279,31 @@ Stick the answer after the colon for each bullet **in bold**:
 **BONUS QUESTION!**
 Which of the three predictions (Bob, Bill, and Fred) do you think is LEAST reliable? You may need some code to figure out which one, so add in below as needed!!
 
+  + It can be clearly seen from the faceted figure below that **Fred's body fat percentage** is the least reliable prediction made by the model. Each of the vertical lines, colored by identity, represent the individual measurement from each man. We can see that in each of the seven predictors Fred falls just beyond or barely inside the scope of measurement for all the other men, thus making his predicted body fat percentage the least reliable prediction.
+
 ```{r}
-ggplot(fatmen, aes(x = Age, y = Percent)) +
-  geom_point() + geom_smooth(method = "lm", color = "red2") +
-  labs(x = "Age Circumference (cm)", y = "Percent Bodyfat",
-        subtitle = "Bob (37), Bill (65), Fred (19)") +
-  geom_vline(xintercept = 19, color = "dodgerblue") +
-  theme_bw()
+man_colors <- c("dodgerblue2", "red3", "orange")
 
-ggplot(fatmen, aes(x = Weight, y = Percent)) +
-  geom_point() + geom_smooth(method = "lm", color = "orange") +
-  labs(x = "Weight Circumference (cm)", y = "Percent Bodyfat",
-       subtitle = "Bob (195), Bill (183), Fred (121)") +
-  geom_vline(xintercept = 121, color = "dodgerblue") +
-  theme_bw()
+new_men %>%
+  pivot_longer(Age:Wrist,
+               names_to = "Category",
+               values_to = "Measurement") -> longnew
 
-ggplot(fatmen, aes(x = Neck, y = Percent)) +
-  geom_point() + geom_smooth(method = "lm", color = "palegoldenrod") +
-  labs(x = "Neck Circumference (cm)", y = "Percent Bodyfat",
-       subtitle = "Bob (43.6), Bill (41.2), Fred (30.2)") +
-  geom_vline(xintercept = 30.2, color = "dodgerblue") +
-  theme_bw()
-
-ggplot(fatmen, aes(x = Abdomen, y = Percent)) +
-  geom_point() + geom_smooth(method = "lm", color = "forestgreen") +
-  labs(x = "Abdomen Circumference (cm)", y = "Percent Bodyfat",
-       subtitle = "Bob (110.6), Bill (90.1), Fred (68)") +
-  geom_vline(xintercept = 68, color = "dodgerblue") +
-  theme_bw()
-
-ggplot(fatmen, aes(x = Thigh, y = Percent)) +
-  geom_point() + geom_smooth(method = "lm", color = "lightblue3") +
-  labs(x = "Thigh Circumference (cm)", y = "Percent Bodyfat",
-       subtitle = "Bob (71.7), Bill (77.5), Fred (48.1)") +
-  geom_vline(xintercept = 48.1, color = "dodgerblue") +
-  theme_bw()
-
-ggplot(fatmen, aes(x = Forearm, y = Percent)) +
-  geom_point() + geom_smooth(method = "lm", color = "purple2") +
-  labs(x = "Forearm Circumference (cm)", y = "Percent Bodyfat",
-       subtitle = "Bob (31.2), Bill (32.2), Fred (23.8)") +
-  geom_vline(xintercept = 23.8, color = "dodgerblue") +
-  theme_bw()
-
-ggplot(fatmen, aes(x = Wrist, y = Percent)) +
-  geom_point() + geom_smooth(method = "lm", color = "purple4") +
-  labs(x = "Wrist Circumference (cm)", y = "Percent Bodyfat",
-       subtitle = "Bob (19.2, Bill (18.2), Fred (16.1)") +
-  geom_vline(xintercept = 16.1, color = "dodgerblue") +
-  theme_bw()
+fatmen %>%
+  dplyr::select(Percent, Age, Weight,
+                Neck, Abdomen, Thigh,
+                Forearm, Wrist) %>%
+  pivot_longer(Age:Wrist,
+               names_to = "Category",
+               values_to = "Measurement") %>%
+  ggplot(aes(y = Percent, x = Measurement)) +
+  geom_point() + 
+  geom_smooth(method = "lm", color = "forestgreen") +
+  geom_vline(data =longnew, aes(xintercept = Measurement, color = Name)) +
+  scale_color_manual(values = man_colors) +
+  theme_minimal() +
+  facet_wrap(~ Category, scales = "free_x")
+#Using free_x allows each facet to have its own x-axis
 
 ```
 
