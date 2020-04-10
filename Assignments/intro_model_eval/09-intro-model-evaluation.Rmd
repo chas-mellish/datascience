@@ -153,7 +153,17 @@ mean(final_kfold$rmse_value)
 ## Make figures for R^2 and RMSE, which clearly show the MEAN values for each distribution using stat_summary() or similar (unless you make a boxplot, which already shows the median)
 ggplot(final_kfold, aes(x = "", y = rmse_value)) +
   geom_violin(alpha = 0.7, fill = "dodgerblue2") +
-  stat_summary()
+  stat_summary() +
+  labs(x = "", y = "RMSE") +
+  theme_minimal() -> rmse_plot2.2
+
+ggplot(final_kfold, aes(x = "", y = rsquared)) +
+  geom_violin(alpha = 0.7, fill = "lightgreen") +
+  stat_summary() +
+  labs(x = "", y = "R-Squared") +
+  theme_minimal() -> rsquared_plot2.2
+
+rmse_plot2.2 + rsquared_plot2.2
 
 ```
 
@@ -161,11 +171,11 @@ ggplot(final_kfold, aes(x = "", y = rmse_value)) +
 
 1. Examine your distribution of $R^2$ values. What is the average $R^2$, and how does it compare to the **testing $R^2$** from Part 1?
 
-    + (Answer goes here)
+    + The average $R^2$ of this model is 0.695, which is to say that this model can explain almost 70% of the data. This is *lower* than the $R^2$ presented in Part 1 of this assignment, where 74.2% of varation in bodyfat percentage was explained by the model.
 
 2. Examine your distribution of *RMSE* values. What is the average *RMSE*, and how does it compare to the **testing RMSE** from Part 1?
 
-    + (Answer goes here)
+    + The average RMSE value for this model was 4.37, this is higher than the RMSE found in Part 1 of this assignment (4.23). This means that the first model had more accuracy in its explanatory power, smaller RMSE values are favorable.
   
 
 
@@ -182,13 +192,19 @@ crossv_loo(fatmen) %>%
 mean(final_loo$rmse_value)
 
 ## Make figure of RMSE distribution, which clearly shows the MEAN value for the distribution using stat_summary() (unless you make a boxplot, which already shows the median)
+
+ggplot(final_loo, aes(x = "", y = rmse_value)) +
+  geom_boxplot(alpha = 0.6, fill = "coral") +
+  labs(x = "", y = "RMSE") +
+  theme_minimal()
+
 ```
 
 #### Part 2.3 question: Answer the questions in the templated bullets!
 
 1. Examine your distribution of *RMSE* values. What is the average *RMSE*, and how does it compare to the **testing RMSE** from Part 1? How does it compare to the average *RMSE* from k-fold cross validation?
 
-    + (Answer goes here)
+    + The average RMSE value for this model was 3.58, this was highly favorable especially in comparison with the previous evaluations. In both Part 1 (4.23) and Part 2.2 (4.37) the average RMSE was higher than the value generated from this leave-one-out cross validation.
 
 
 ### Part 2.4: Wrap-up
@@ -233,7 +249,8 @@ fat_formula <- as.formula("Percent ~ Age + Weight + Neck + Abdomen + Thigh +
 
 ## Make a SINGLE tibble with THREE ROWS (one per observed new man), and use this tibble to predict outcomes with `modelr::add_predictions()
 ## HINT: See the tidyr assignment for different ways to make a tibble directly within R
-tibble(Age = c(37, 65, 19),
+tibble(Name = c("Bob", "Bill", "Fred"),
+       Age = c(37, 65, 19),
        Weight = c(195, 183, 121),
        Neck = c(43.6, 41.2, 30.2),
        Abdomen = c(110.6, 90.1, 68),
@@ -259,8 +276,61 @@ Stick the answer after the colon for each bullet **in bold**:
 Which of the three predictions (Bob, Bill, and Fred) do you think is LEAST reliable? You may need some code to figure out which one, so add in below as needed!!
 
 ```{r}
-ggplot(fatmen, aes(x = , y = Percent)) +
-  geom_point() + geom_smooth(method = "lm")
+ggplot(fatmen, aes(x = Age, y = Percent)) +
+  geom_point() + geom_smooth(method = "lm", color = "red2") +
+  labs(x = "Age Circumference (cm)", y = "Percent Bodyfat",
+        subtitle = "Bob (37), Bill (65), Fred (19)") +
+  geom_vline(xintercept = 19, color = "dodgerblue") +
+  theme_bw()
+
+ggplot(fatmen, aes(x = Weight, y = Percent)) +
+  geom_point() + geom_smooth(method = "lm", color = "orange") +
+  labs(x = "Weight Circumference (cm)", y = "Percent Bodyfat",
+       subtitle = "Bob (195), Bill (183), Fred (121)") +
+  geom_vline(xintercept = 121, color = "dodgerblue") +
+  theme_bw()
+
+ggplot(fatmen, aes(x = Neck, y = Percent)) +
+  geom_point() + geom_smooth(method = "lm", color = "palegoldenrod") +
+  labs(x = "Neck Circumference (cm)", y = "Percent Bodyfat",
+       subtitle = "Bob (43.6), Bill (41.2), Fred (30.2)") +
+  geom_vline(xintercept = 30.2, color = "dodgerblue") +
+  theme_bw()
+
+ggplot(fatmen, aes(x = Abdomen, y = Percent)) +
+  geom_point() + geom_smooth(method = "lm", color = "forestgreen") +
+  labs(x = "Abdomen Circumference (cm)", y = "Percent Bodyfat",
+       subtitle = "Bob (110.6), Bill (90.1), Fred (68)") +
+  geom_vline(xintercept = 68, color = "dodgerblue") +
+  theme_bw()
+
+ggplot(fatmen, aes(x = Thigh, y = Percent)) +
+  geom_point() + geom_smooth(method = "lm", color = "lightblue3") +
+  labs(x = "Thigh Circumference (cm)", y = "Percent Bodyfat",
+       subtitle = "Bob (71.7), Bill (77.5), Fred (48.1)") +
+  geom_vline(xintercept = 48.1, color = "dodgerblue") +
+  theme_bw()
+
+ggplot(fatmen, aes(x = Forearm, y = Percent)) +
+  geom_point() + geom_smooth(method = "lm", color = "purple2") +
+  labs(x = "Forearm Circumference (cm)", y = "Percent Bodyfat",
+       subtitle = "Bob (31.2), Bill (32.2), Fred (23.8)") +
+  geom_vline(xintercept = 23.8, color = "dodgerblue") +
+  theme_bw()
+
+ggplot(fatmen, aes(x = Wrist, y = Percent)) +
+  geom_point() + geom_smooth(method = "lm", color = "purple4") +
+  labs(x = "Wrist Circumference (cm)", y = "Percent Bodyfat",
+       subtitle = "Bob (19.2, Bill (18.2), Fred (16.1)") +
+  geom_vline(xintercept = 16.1, color = "dodgerblue") +
+  theme_bw()
 
 ```
+
+
+
+
+
+
+
 
