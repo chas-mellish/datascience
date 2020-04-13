@@ -1,0 +1,99 @@
+---
+title: "#TidyTuesday Submission"
+subtitle: "Data Science for Biologists, Spring 2020"
+author: "Nicholas Paterna"
+date: "April 12, 2020"
+output:
+  html_document:
+    highlight: pygments
+    theme: yeti
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+library(tidyverse)
+library(patchwork)
+theme_set(theme_minimal())
+
+tdf_winners <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_winners.csv')
+
+```
+
+### TidyTuesday Week 15
+Hi, I am once again attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a smidge_** of experience in coding thanks to [Dr. Stephanie Spielman](https://twitter.com/stephspiel). R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism or helpful tips in trimming my code!!
+
+```{r Variable Coding}
+
+tidy_path <- "/Users/nickpaterna/datascience/TidyTuesday/Week_15/"
+#This variable will tell the figure where to save when I apply ggsave!
+
+figure_name <- "tidytues_week15.png"
+#Rather than re-typing this into ggsave I can just use this!
+
+figure_name2 <- "tidytues_week15.2.png"
+#I have two plots this week!
+```
+
+## Avoid Hard-coding!
+One of the most important things that my professor stresses is a complete aversion to HARD-CODING, or explicitly re-typing code in a large script. It might not make a lot of sense to apply these practices on a small assignment but the more often I apply it the easier to apply it is in the future! (Also the second visible code chunk gives my submission some more flavor!)
+
+```{r}
+tdf_winners %>%
+  select(birth_country, height, weight) %>%
+  #Only comparing these variables
+  drop_na() %>%
+  #Early winners don't have a weight or height recorded so they arent included
+  group_by(birth_country) %>%
+  summarize(avg_height = mean(height), avg_weight = mean(weight)) %>%
+  mutate(avg_height = round(avg_height, 2),
+         avg_weight = round(avg_weight, 2)) -> avg_tdf
+  #Passing the code into round() makes the data labels of my figure uniform
+
+head(avg_tdf)
+```
+
+## Data Wrangling
+A big part of my Data Science class is utilizing the many packages in our Tidyverse Tool belt to clean up data. Here, this means filtering out unwanted values and narrowing down the observations of interest for the figure I produced after. I mostly used `dplyr` to help this process but it is still important nonetheless.
+
+```{r TT_Week14, fig.height=4, fig.width=6}
+ggplot(avg_tdf, aes(x = birth_country, y =  avg_height)) +
+  geom_col(aes(fill = birth_country)) + 
+  geom_label(aes(y = avg_height, 
+                 label = avg_height),
+             size = 3,
+             position = position_stack(vjust = 0.75),
+             alpha = 0.9) +
+  #Applies labels to each col created
+  theme(legend.position = "NULL",
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(angle = 45)) +
+  #Hiding the legend and y-axis bc I am adding data labs
+  labs(x = "Birth Country", y = "Average Height (m)") -> tour_height
+
+ggsave(paste0(tidy_path, figure_name), tour_height, width = 6, height = 4)
+tour_height
+
+ggplot(avg_tdf, aes(x = birth_country, y =  avg_weight)) +
+  geom_col(aes(fill = birth_country)) + 
+  geom_label(aes(y = avg_weight, 
+                 label = avg_weight),
+             size = 3,
+             position = position_stack(vjust = 0.75),
+             alpha = 0.9) +
+  #Applies labels to each col created
+  theme(legend.position = "NULL",
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(angle = 45)) +
+  #Hiding the legend and y-axis bc I am adding data labs
+  labs(x = "Birth Country", y = "Average Weight (kg)") -> tour_weight
+
+ggsave(paste0(tidy_path, figure_name2), tour_weight, width = 6, height = 4)
+tour_weight
+```
+
+Wow this weekend was a whirlwind with Easter, I almost forgot to do my #TidyTuesday submission! I ran into a few headaches this week brainstorming the types of plot I wanted to create and how I wanted to get them down into actual code. I love how these plots came out BUT I was upset to find that I had too many countries to use `scale_fill_brewer()` so I settled on the default coloring. Also to my detriment, I could not play with the `patchwork` package this week because I just could NOT get my labels and axes to cooperate. Therefore this TidyTuesday is composed of TWO figures, which compare the same countries with similar trends in average weight and height. Please enjoy!
+
+I hope you enjoy my plot, you can find this and future entries on my [GitHub](https://github.com/npaterna/datascience/tree/master/TidyTuesday).
+
