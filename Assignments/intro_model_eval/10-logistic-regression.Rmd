@@ -246,10 +246,8 @@ test_data <- tibble(FPR = 1 - test_roc$specificities,
 bind_rows(train_data, test_data) %>%
   #Combines data
   ggplot(aes(x = FPR, y = TPR)) +
-  geom_line(aes(size = model, color = model)) +
+  geom_line(aes(color = model)) +
   scale_color_manual(values = c("forestgreen", "gold")) +
-  scale_size_manual(values = c(1,1)) +
-  #Resizing and coloring to make the curves visible
   labs(title = "ROC Curves of Training & Testing Data",
        color = "Model") +
   theme_minimal()
@@ -261,7 +259,7 @@ bind_rows(train_data, test_data) %>%
 
 How does this model perform when considering a training and testing split? Compare their specific AUC values and discuss whether you believe the model suffers from overfitting or not in 1-2 sentences.
 
-+ This model performs well when considering the split, the resulting AUC of both the training split (~85%) and the testing split (~83%) are high but not clearly over-fitted.
++ This model performs well when considering the split, the resulting AUC of both the training split (~85%) and the testing split (~83%) are high but not clearly over-fitted as these values are not vastly different.
 
 
 ## Part 4: Evaluating at a given threshold
