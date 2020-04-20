@@ -15,6 +15,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 library(tidyverse)
 library(patchwork)
+library(treemapify)
 theme_set(theme_minimal())
 
 polls <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-14/polls.csv')
@@ -63,7 +64,7 @@ filtered_ranks %>%
   select(- artist) %>%
   group_by(gender) %>%
   ggplot(aes(x = gender, y = points, fill = gender)) +
-  geom_col() + coord_polar() +
+  geom_col(alpha = 0.75) +
   scale_fill_manual(values = rap_fills) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -73,7 +74,7 @@ filtered_ranks %>%
 filtered_ranks %>%
   filter(artist %in% big_6) %>%
   ggplot(aes(x = gender, y = points, fill = gender)) +
-  geom_col() + coord_polar() +
+  geom_col(alpha = 0.75) +
   scale_fill_manual(values = rap_fills) +
   theme(axis.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -93,7 +94,7 @@ ggsave(paste0(tidy_path, figure_name), rap_plot, width = 6, height = 4)
 rap_plot
 ```
 
-I had SO much fun doing this week's #TidyTuesday! I love music and interacting with data tied to hip-hop was exciting as it is one of my favorite genres. Using this dataset I examined the lack of representation for female artists by their garnered point value from these critics. Personally, I prefer listening to female rap and Missy Elliot is one of my favorite artists of all time ("Beep Me 911" is a classic). For this weeks figure `coord_polar()` was cooperating with the data I fed it and I love the figures it produced. I also altered aspects of the theme with `plot_annotation()`, and realized that the `patchwork` package is much easier to use than I realized!
+I had SO much fun doing this week's #TidyTuesday! I love music and interacting with data tied to hip-hop was exciting as it is one of my favorite genres. Using this dataset I examined the lack of representation for female artists by their garnered point value from these critics. Personally, I prefer listening to female rap and Missy Elliot is one of my favorite artists of all time ("Beep Me 911" is a classic). I also altered aspects of the theme with `plot_annotation()`, and realized that the `patchwork` package is much easier to use than I realized!
 
 I hope you enjoy my plot, you can find this and future entries on my [GitHub](https://github.com/npaterna/datascience/tree/master/TidyTuesday).
 
