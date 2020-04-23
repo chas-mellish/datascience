@@ -12,11 +12,12 @@ editor_options:
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 library(tidyverse)
+theme_set(theme_minimal())
 
-## SET YOUR SEED BELOW!!! Make it YOUR SEED! Uncomment the line, and add your chosen seed number into the parentheses
-#set.seed()
+set.seed(1227)
+# My brother's birthday!
 ```
 
 ## Instructions
@@ -30,7 +31,7 @@ Standard grading criteria apply. And...
 
 <!-- This is an actual comment in markdown. -->
 
-## The data
+## The Data
 
 We will be using a dataset of olives collected from various regions of Italy. The data gives the percentage of different fatty acids that comprise the oil in the olives. [Source](https://rdrr.io/cran/dslabs/man/olive.html)
 
@@ -43,11 +44,17 @@ dplyr::glimpse(olives)
 ## Part 1: Clustering
 
 Perform TWO k-means cluster analysis, once with **k=3** and once with **k=5**. 
-
 ```{r}
 ## Perform two clustering analyses here with k=3 and k=5, separately.
-```
+olives %>%
+  select(-region, -area) %>%
+  kmeans(3) -> olives_k3
 
+olives %>%
+  select(-region, -area) %>%
+  kmeans(5) -> olives_k5
+
+```
 
 
 For each analysis, make a SINGLE FIGURE for each clustering analysis (two figures total). Choose your own adventure for each figure! You should explain per figure: a) Why did you decide to visualize the clustering using this particular figure? (~1 sentence) and b) What insights (if any!) does this figure provide (1-2 sentences)? Answer in the bullets below the given figure. 
@@ -56,31 +63,57 @@ For each analysis, make a SINGLE FIGURE for each clustering analysis (two figure
 
 ```{r}
 ## Figure for k=3 including all associated wrangling
+## We are using k = 3 for this cluster
 
+olives %>%
+  mutate(k3_clusters = factor(olives_k3$cluster)) %>%
+  ggplot(aes(x = k3_clusters, y = stearic, fill = k3_clusters)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "K-Means Clusters", y = "Stearic Acid") +
+  theme(legend.position = "NULL")
 
 ```
 
 + **Answer: Why did you choose this figure?**
+  + I wanted to investigate how the clusters grouped data by stearic acid content.
+
 + **Answer: What trends/insights (if any)  does the figure reveal, as they relate to the clusters?**
+  + This figure does not necessarily provide insight into the clusters created but it does show that stearic acid content is similar among most of the olives evaluated.
 
 
 ```{r}
 ## Figure for k=5 including all associated wrangling
+## We are using k = 5 for this cluster
 
+olives %>%
+  mutate(k5_clusters = factor(olives_k5$cluster)) %>%
+  ggplot(aes(x = palmitic, y = linoleic, color = k5_clusters)) +
+  geom_point() + stat_ellipse() +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Palmitic Acid", y = "Linoleic Acid", color = "K-Means Cluster")
 
 ```
 
 + **Answer: Why did you choose this figure?**
+  + I chose to compare two of the acids present in the olives evaluated and how they were clustered.
+
 + **Answer: What trends/insights (if any) does the figure reveal, as they relate to the clusters?**
+  + There was more variation between the points not only because they are grouped into *more* clusters but also the evaluated points drift further from the centroids.
+  
+  + Therefore, I believe that these acids either have no relation or that 5 clusters are insufficient for this data.
 
 
 ## Part Two: PCA
 
-Perform a principle components analysis on this dataset, and create TWO figures from your PCA. Each figure should have a brief explanation as a bullet below it. For each figure, your should be labeled to include information about how much variation the given PC explains in the data.
+Perform a principal components analysis on this dataset, and create TWO figures from your PCA. Each figure should have a brief explanation as a bullet below it. For each figure, your should be labeled to include information about how much variation the given PC explains in the data.
 
 ```{r}
 ## Code to perform PCA goes here
-
+olives %>%
+  select(-region, -area) %>%
+  scale() %>%
+  prcomp() -> olives_pca
 
 ```
 
@@ -88,26 +121,58 @@ Perform a principle components analysis on this dataset, and create TWO figures 
 
 ```{r}
 ## Code to examine loadings goes here
+olives_pca$rotation
+
 ```
 
 + **Strongest PC1 loading:**
+  + PC1 has the *strongest* overall relationship with **oleic acid**.
+
 + **Strongest PC2 loading:**
+  + PC2 has the *strongest* overall relationship with **linolenic acid**.
+
 + **Weakest PC1 loading:**
+  + PC1 has the *weakest* overall relationship with **stearic acid**.
+
 + **Weakest PC2 loading:**
+  + PC2 has the *weakest* overall relationship with **palmitic acid**.
 
 2. Plot PC2 against PC1 (PC2 is on Y and PC1 is on X) as a scatterplot, where you use color to distinguish among **olive region** (NOT area!). Make sure to show ellipses for each grouping. Do NOT include loading arrows. In the bullet below, _explain in 2-3 sentences_ if and how either PC1 or PC2 discriminates olive region. You may write a bulleted list *as long as it renders properly.*
 
 ```{r}
 ## Code to make this figure goes here
+as_tibble(olives_pca$x) %>%
+  mutate(region = olives$region) %>%
+  ggplot(aes(x = PC1, y = PC2, color = region)) +
+  geom_point() + stat_ellipse() +
+  #stat_ellipse() easily visualizes the clustering by region
+  scale_color_brewer(palette = "Dark2") +
+  labs(color = "Region")
+  
 ```
 
-+ **Explanation for figure**
++ **Explanation for Figure:**
+  + This figure shows how the PCA method successfully groups points by their region with few outliers.
+  
+  + Therefore, we can appropriately identify the reigon an olive originates from with **some** certainty from this figure.
 
 2. Plot PC2 against PC1 as a scatterplot, where you use color to distinguish among **olive area** (the other categorical column!). Make sure to show ellipses for each grouping. Do NOT include loading arrows. In the bullet below, _explain in 2-3 sentences_ if and how either PC1 or PC2 discriminates olive region. You may write a bulleted list *as long as it renders properly.*
 
-+ **Explanation for figure**
+```{r}
+## Code to make this figure goes here
+as_tibble(olives_pca$x) %>%
+  mutate(area = olives$area) %>%
+  ggplot(aes(x = PC1, y = PC2, color = area)) +
+  geom_point() + stat_ellipse() +
+  #stat_ellipse() easily visualizes the clustering by region
+  labs(color = "Area")
+  
+```
 
-
++ **Explanation for Figure:**
+  + This figure shows how the PCA method successfully groups points by their region with few outliers.
+  
+  + Therefore, we can appropriately identify the area an olive originates from with **some** certainty from this figure, this is not as *clean* as the figure made from our regional data.
 
 ## BONUS QUESTION 1
 
