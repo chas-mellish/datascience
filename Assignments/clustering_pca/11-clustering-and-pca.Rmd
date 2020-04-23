@@ -79,7 +79,7 @@ olives %>%
   + I wanted to investigate how the clusters grouped data by stearic acid content.
 
 + **Answer: What trends/insights (if any)  does the figure reveal, as they relate to the clusters?**
-  + This figure does not necessarily provide insight into the clusters created but it does show that stearic acid content is similar among most of the olives evaluated.
+  + This figure does not necessarily provide insight into the clusters created but it does show that stearic acid content is similar among the *clusters* detected, though there still is variation across olives.
 
 
 ```{r}
@@ -179,6 +179,24 @@ as_tibble(olives_pca$x) %>%
 Make a figure of the loadings on PC1 and PC2 in the space below. Make sure it is as legible as possible! No explanation needed, just make a plot!
 ```{r}
 ## Bonus loadings plot
+olives_pca$sdev
+
+olives_pca_variance <- olives_pca$sdev**2
+olives_pca_variance / sum(olives_pca_variance) -> variation_explained
+
+tibble(variation_explained) %>%
+  mutate(PC = paste0("PC", 1:8)) -> final_variation
+
+  ggplot(final_variation, aes(x = PC, y = variation_explained)) +
+  geom_col(color = "navyblue",
+           fill = "hotpink",
+           alpha = 0.75) +
+  geom_text(aes(x = PC,
+            y = variation_explained + 0.02,
+            label = round(variation_explained, 5))) +
+  labs(x = "Principal Components",
+       y = "Percent of Variation in Data Explained")
+
 ```
 
 ## BONUS QUESTION 2
@@ -186,5 +204,21 @@ Make a figure of the loadings on PC1 and PC2 in the space below. Make sure it is
 Perform a k-means clustering with *k=3* on the PCs to examine whether olive *regions* cluster together. **You must include a clear explanation (1-3 sentences) to receive ANY CREDIT AT ALL for this bonus.**
 ```{r}
 ## Bonus clustering
+as_tibble(olives_pca$x) %>%
+  kmeans(3) -> olives_k3_bonus
+
+olives %>%
+  mutate(bon_cluster_k3 = factor(olives_k3_bonus$cluster)) -> final_clusters
+  
+ggplot(final_clusters, aes(x = region, fill = bon_cluster_k3)) +
+  geom_bar(alpha = 0.75) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Region", y = "Count", fill = "K-Means Cluster")
+
 ```
-+ **Bonus explanation**
++ **Bonus Explanation**
+  + The *region* for each olive does not cluster together here unforunately.
+  
+  + Though the bulk of certain clusters belong to a certain regions, most of *Cluster 2* residing in *Southern Italy* for example, there is no clear distinction between data clusters and the regions examined.
+
+
