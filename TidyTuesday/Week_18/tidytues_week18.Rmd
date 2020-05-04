@@ -1,0 +1,80 @@
+---
+title: "#TidyTuesday Submission"
+subtitle: "Data Science for Biologists, Spring 2020"
+author: "Nicholas Paterna"
+date: "May 3, 2020"
+output:
+  html_document:
+    highlight: zenburn
+    theme: yeti
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+library(tidyverse)
+library(patchwork)
+theme_set(theme_minimal())
+
+grosses <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-28/grosses.csv', guess_max = 40000)
+
+```
+
+### TidyTuesday Week 16
+Hi, I am once again attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a smidge_** of experience in coding thanks to [Dr. Stephanie Spielman](https://twitter.com/stephspiel). R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism or helpful tips in trimming my code!!
+
+```{r Variable Coding}
+
+tidy_path <- "/Users/nickpaterna/datascience/TidyTuesday/Week_18/"
+#This variable will tell the figure where to save when I apply ggsave!
+
+figure_name <- "tidytues_week18.png"
+#Rather than re-typing this into ggsave I can just use this!
+
+play_fills <- c("darkblue", "coral2")
+#Assigning pretty fills for my figure.
+
+nicks_shows <- c("Hairspray", "The Phantom of the Opera", "Hedwig and the Angry Inch", "Wicked", "Frozen", "Hamilton", "Shrek the Musical", "Into the Woods", "Grease", "Cats", "Les Miserables", "Little Shop of Horrors", "The Little Mermaid", "Mean Girls", "Legally Blonde", "Aida", "Jersey Boys", "The Rocky Horror Show", "Sweeney Todd", "Kinky Boots", "Rent", "The Lion King", "Mamma Mia!", "Moulin Rouge! The Musical!")
+
+```
+
+## Avoid Hard-coding!
+One of the most important things that my professor stresses is a complete aversion to HARD-CODING, or explicitly re-typing code in a large script. It might not make a lot of sense to apply these practices on a small assignment but the more often I apply it the easier to apply it is in the future! (Also the second visible code chunk gives my submission some more flavor!)
+
+```{r}
+grosses %>%
+  separate(week_ending, c("year", "month", "day"), sep = "-") %>%
+  filter(show %in% nicks_shows) %>%
+  select(show, year, top_ticket_price) %>%
+  drop_na() %>%
+  group_by(show) %>%
+  summarize(tip_top_price = max(top_ticket_price)) -> money_money_money
+
+```
+
+## Data Wrangling
+A big part of my Data Science class is utilizing the many packages in our Tidyverse Tool belt to clean up data. Here, this means filtering out unwanted values and narrowing down the observations of interest for the figure I produced after. I mostly used `dplyr` to help this process but it is still important nonetheless.
+
+```{r TT_Week16, fig.height=4, fig.width=6}
+money_money_money %>%  
+  ggplot(aes(x = fct_reorder(show, tip_top_price, .desc = T), 
+             y = tip_top_price)) +
+  geom_col(color = "darkred",
+           size = 0.3,
+           fill = "coral",
+           alpha = 0.8) +
+  coord_flip() +
+  labs(x = "Shows",
+       y = "Highest Recorded Ticket Price (USD)",
+       title = "Visualizing the Tip-Top Price of Nick's Favorite Shows") -> musical_plot
+  
+
+ggsave(paste0(tidy_path, figure_name), musical_plot, width = 6, height = 4)
+musical_plot
+```
+
+I fell off the bandwagon last week with #TidyTuesday because I was so wrapped up in school, but this week I am happy to participate! I have always loved musical theater and when I was younger it was my first immersion into LGBT+ culture. I love the expression of acting blended with the raw emotional appeal of song. This week I spent a **LOT** of time wrangling and deciding what to do with such a vast dataset. Ultimately I settled on a visualization pertaining to the musicals that I like the most! I played around with my `tidyr` functions and was inspired by my instructor to use the `coord_flip()` function to produce this beautiful bar plot. Dr. Spielman if you're reading this I hope you approve of my musical taste!
+
+I hope you enjoy my plot, you can find this and future entries on my [GitHub](https://github.com/npaterna/datascience/tree/master/TidyTuesday).
+
