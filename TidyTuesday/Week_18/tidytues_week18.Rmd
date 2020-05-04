@@ -67,7 +67,7 @@ money_money_money %>%
   coord_flip() +
   labs(x = "Shows",
        y = "Highest Recorded Ticket Price (USD)",
-       title = "Visualizing the Tip-Top Price of Nick's Favorite Shows") -> musical_plot
+       title = "The Tip-Top Price of Nick's Favorite Shows") -> musical_plot
   
 
 ggsave(paste0(tidy_path, figure_name), musical_plot, width = 6, height = 4)
