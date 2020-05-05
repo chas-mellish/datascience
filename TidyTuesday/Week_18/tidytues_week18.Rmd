@@ -21,7 +21,7 @@ grosses <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/ti
 
 ```
 
-### TidyTuesday Week 16
+### TidyTuesday Week 18
 Hi, I am once again attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a smidge_** of experience in coding thanks to [Dr. Stephanie Spielman](https://twitter.com/stephspiel). R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism or helpful tips in trimming my code!!
 
 ```{r Variable Coding}
