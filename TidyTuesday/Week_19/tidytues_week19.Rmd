@@ -1,0 +1,139 @@
+---
+title: "#TidyTuesday Submission"
+subtitle: "Data Science for Biologists, Spring 2020"
+author: "Nicholas Paterna"
+date: "May 6, 2020"
+output:
+  html_document:
+    highlight: zenburn
+    theme: yeti
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+library(tidyverse)
+library(patchwork)
+theme_set(theme_minimal())
+
+items <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/items.csv')
+
+villagers <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/villagers.csv')
+
+```
+
+### TidyTuesday Week 19
+Hi, I am once again attempting to make a figure for #TidyTuesday! I am a student at Rowan University in Biochemistry with **_a smidge_** of experience in coding thanks to [Dr. Stephanie Spielman](https://twitter.com/stephspiel). R is my first language and I am very happy to be learning it, I hope to work in Bioinformatics one day possibly Medical Genomics. I am open to criticism or helpful tips in trimming my code!!
+
+```{r Variable Coding}
+
+tidy_path <- "/Users/nickpaterna/datascience/TidyTuesday/Week_19/"
+#This variable will tell the figure where to save when I apply ggsave!
+
+figure_name <- "tidytues_week19.png"
+#Rather than re-typing this into ggsave I can just use this!
+
+figure_name2 <- "tidytues_week19_2.png"
+#Rather than re-typing this into ggsave I can just use this!
+
+nicks_villagers <- c("Anabelle", "Chops", "Coach", "Coco", "Deirdre", "Octavian", "Pashmina", "Queenie", "Rex", "Ruby")
+#The names of the villagers that live on my island!
+
+nicks_villagers_species <- c("Anteater", "Pig", "Bull", "Rabbit", "Deer", "Octopus", "Goat", "Ostrich", "Lion", "Rabbit")
+#Species of villagers on my island!
+
+```
+
+## Avoid Hard-coding!
+One of the most important things that my professor stresses is a complete aversion to HARD-CODING, or explicitly re-typing code in a large script. It might not make a lot of sense to apply these practices on a small assignment but the more often I apply it the easier to apply it is in the future! (Also the second visible code chunk gives my submission some more flavor!)
+
+```{r}
+villagers %>%
+  select(name, birthday) %>%
+  separate(birthday,
+           c("birth_month", "birth_date"),
+           sep = "-") %>%
+  mutate(birth_date = as.numeric(birth_date)) %>%
+  mutate(birth_month = as.numeric(birth_month)) %>%
+  mutate(birth_date = birth_date/100) %>%
+  mutate(birthday = birth_month + birth_date) %>%
+  mutate(zodiac = case_when(
+    birthday >= 3.21 & birthday <= 4.19 ~ "Aries",
+    birthday >= 4.20 & birthday <= 5.20 ~ "Taurus",
+    birthday >= 5.21 & birthday <= 6.20 ~ "Gemini",
+    birthday >= 6.21 & birthday <= 7.22 ~ "Cancer",
+    birthday >= 7.23 & birthday <= 8.22 ~ "Leo",
+    birthday >= 8.23 & birthday <= 9.22 ~ "Virgo",
+    birthday >= 9.23 & birthday <= 10.22 ~ "Libra",
+    birthday >= 10.23 & birthday <= 11.21 ~ "Scorpio",
+    birthday >= 11.22 & birthday <= 12.21 ~ "Sagittarius",
+    birthday >= 12.22 & birthday <= 12.31 ~ "Capricorn",
+    birthday >= 1.01 & birthday <= 1.19 ~ "Capricorn",
+    birthday >= 1.20 & birthday <= 2.18 ~ "Aquarius",
+    birthday >= 2.19 & birthday <= 3.20 ~ "Pisces")) %>%
+  select(name, birthday, zodiac) -> zodiac_data
+
+villagers %>%
+  select(-c(birthday, full_id, id, url, phrase, row_n)) %>%
+  inner_join(zodiac_data) %>%
+  mutate(gender = str_to_title(gender)) %>%
+  mutate(species = str_to_title(species)) %>%
+  mutate(personality = str_to_title(personality)) -> final_villagers
+  
+```
+
+## Data Wrangling
+A big part of my Data Science class is utilizing the many packages in our Tidyverse Tool belt to clean up data. Here, this means filtering out unwanted values and narrowing down the observations of interest for the figure I produced after. I mostly used `dplyr` to help this process but it is still important nonetheless.
+
+```{r TT_Week16, fig.height=4, fig.width=6}
+final_villagers %>%
+  ggplot(aes(x = zodiac, fill = personality)) +
+  geom_bar(color = "black", size = 0.4) +
+  scale_fill_brewer(palette = "Spectral") +
+  coord_flip() +
+  labs(x = "Count",
+       y = "Zodiac Sign",
+       fill = "Personality",
+       title = "Personality Distribution by Zodiac Sign") +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"),
+        plot.title = element_text(size = 20, face = "bold", hjust = 0.5)) -> solo_zodiac
+
+ggsave(paste0(tidy_path, figure_name), solo_zodiac, width = 8, height = 4)
+solo_zodiac
+
+
+final_villagers %>%
+  filter(species %in% nicks_villagers_species) %>%
+  ggplot(aes(x = personality, fill = species)) +
+  geom_bar(color = "black", size = 0.4) +
+  coord_flip() +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(y = "Count", x = "Personality", fill = "Species") -> personality_plot
+
+final_villagers %>%
+  filter(species %in% nicks_villagers_species) %>%
+  ggplot(aes(fill = species, x = zodiac)) +
+  geom_bar(color = "black", size = 0.4) +
+  coord_flip() +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(y = "Count", x = "Zodiac Sign", fill = "Species") -> zodiac_plot
+
+
+personality_plot + zodiac_plot +
+  plot_annotation(title = "Distribution of Villager Traits for Species Found on St. Vega",
+                  subtitle = "Data from Villager DB",
+                  caption = "#TidyTuesday\n Created by: @NicholasPaterna\n") +
+  plot_layout(guides = "collect") & theme(legend.position = 'bottom',
+        plot.title = element_text(face = "bold")) -> combined_vega
+
+
+ggsave(paste0(tidy_path, figure_name2), combined_vega, width = 8, height = 4)
+combined_vega
+```
+
+Things have been crazy busy with finals this week and my virtual commencement but I was SO eager to play with this data! I think this summer I will revisit this #TidyTuesday data set to make a ShinyApp but until then, these figures will suffice. I interacted a lot with the data to make a system for the zodiac signs that worked with `dplyr`, I tried to use `lubridate` but ended up confusing myself and abandoning it. I made two figures this week, one examines the distribution of personalities for all villagers when looking at the 12 zodiac signs. The other looks at distribution of personality and zodiac for the species of my villagers in Animal Crossing, my island's name is St. Vega. Saint because it is an island and Vega after the star that is the key symbol in my favorite book *Contact* by Carl Sagan! (Jodie Foster if you are reading this I love you)
+
+I hope you enjoy my plot, you can find this and future entries on my [GitHub](https://github.com/npaterna/datascience/tree/master/TidyTuesday).
+
